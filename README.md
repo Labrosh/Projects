@@ -10,6 +10,5 @@ Project 1: "Dungeon game"
 Project 2: "Movielog"
   This will be a simple application to log movies I've watched. I aim to learn how to work with databases and create a user-friendly interface.
   Users will be able to add, edit, and delete movie entries, as well as rate and review them.
-
-    I also plan to try and make it online and work with an API.
+  I also plan to try and make it online and work with an API.
     
