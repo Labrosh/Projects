@@ -1,6 +1,27 @@
 import sys
-
+# we all start somewhere. This guy starts in the boring starting room
 player_location = "starting room"
+
+# lets get a list started so we can add items to it later
+inventory = []
+
+# I think I need to add a dictonary for items, and a function to give a descrption of the item if examanined or picked up
+items = {
+    "slimy key": {
+        "description": "A slimy key that smells of old fish. You found this in the south room."
+    },
+    "stone key": {
+        "description": "A heavy key made of stone. You found this in the north room."
+    },
+    "shiny key": {
+        "description": "A shiny key that sparkles in the light. You found this in the east room."
+    },
+    "ancient key": {
+        "description": "An ancient key that looks like it's been around for centuries. You found this in the west room. It seems to be bigger than the other keys you've found."
+    }
+}
+
+# I'm going to add a dictionary for the rooms, and then add a function to print the room description
 rooms = {
     "starting room": {
         "description": "You find yourself inside a blank square room. There is an exit to the north, south, east, and west.",
@@ -9,110 +30,198 @@ rooms = {
             "south": "south room",
             "east": "east room",
             "west": "west room"
-        }
+        },
+        "items": []  # there are no items in this room
     },
     "north room": {
-        "description": "You are in a room with stone walls. There is an exit to the south.",
+        "description": "You are in a room with stone walls. There is an exit to the south. You see a stone key on the ground.",
         "exits": {
             "south": "starting room"
-        }
+        },
+        "items": ["stone key"]  # this is the item in the room, which leads to the south room
     },
     "south room": {
-        "description": "You are in a damp, dark room. There is an exit to the north.",
+        "description": "You are in a damp, dark room. There is an exit to the north. You see a slimy key on the ground.",
         "exits": {
             "north": "starting room"
-        }
+        },
+        "items": ["slimy key"],  # this is the item in the room, which leads to the east room
+        "key": "stone key"  # this is the key needed to enter this room
     },
     "east room": {
-        "description": "You are in a brightly lit room. There is an exit to the west.",
+        "description": "You are in a brightly lit room. There is an exit to the west. You see a shiny key on the ground.",
         "exits": {
             "west": "starting room"
-        }
+        },
+        "items": ["shiny key"],  # this is the item in the room, which leads to the west room
+        "key": "slimy key"  # this is the key needed to enter this room
     },
     "west room": {
-        "description": "You are in a room filled with ancient artifacts. There is an exit to the east.",
+        "description": "You are in a room filled with ancient artifacts. There is an exit to the east, and to the west. You see an ancient key on the ground.",
         "exits": {
-            "east": "starting room"
-        }
+            "east": "starting room",
+            "west": "dungeon exit"
+        },
+        "items": ["ancient key"],  # this is the item in the room, which leads to the dungeon exit
+        "key": "shiny key"  # this is the key needed to enter this room
+    },
+    "dungeon exit": {
+        "description": "You have found the exit to the dungeon. Congratulations!",
+        "exits": {
+            "east": "west room"
+        },
+        "items": [],  # there are no items in this room
+        "key": "ancient key"  # this is the key needed to exit the dungeon
     }
 }
 
+# this now prints the room description, and is helpful when moving between rooms
 def room_desc():
     global player_location
     room = rooms[player_location]
     print(room["description"])
+    if room["items"]:
+        print(f"You see the following items: {', '.join(room['items'])}")
 
+
+# WOO THE INTRO! <- I should add ascii art!
 def intro():
     print("Welcome to the dungeon.\n")
     print("You should start by looking around, or maybe checking your inventory.\n")
 
+# boilerplate player action function
 def player_action():
     player_action = input("What do you want to do? ").strip().lower()
     return player_action
 
+# quitting is fine
 def quit_game():
     print("Goodbye, brave adventurer!")
     sys.exit()
 
+# yeah, stop typing weird things
 def unknown_word():
     print("I don't understand that word.")
 
+# this should help restric movement to only valid exits
 def move(direction):
     global player_location
     current_room = rooms[player_location]
     if direction in current_room["exits"]:
-        player_location = current_room["exits"][direction]
-        print(f"You move {direction}.")
+        next_room = current_room["exits"][direction]
+        if "key" in rooms[next_room] and rooms[next_room]["key"] not in inventory:
+            print(f"You need the {rooms[next_room]['key']} to enter this room.")
+        else:
+            player_location = next_room
+            print(f"You move {direction}.")
+            room_desc()
     else:
         print("You can't go that way.")
 
+# why
 def move_north():
     move("north")
 
+# even
 def move_south():
     move("south")
 
+# comment
 def move_east():
     move("east")
 
+# these
 def move_west():
     move("west")
 
-def inventory():
-    print("You have nothing in your inventory.")
+def show_inventory():
+    if inventory != []:
+        print("You have the following items in your inventory:")
+        for item in inventory:
+            print(f"- {item}")
+    else:
+        print("You have nothing in your inventory.")
 
+# This is a nightmare
+def pick_up(item):
+    global player_location
+    current_room = rooms[player_location]
+    item = item.strip().lower()  # Clean and normalize the item name
+    if item in current_room["items"]:
+        inventory.append(item)
+        current_room["items"].remove(item)
+        print(f"You picked up the {item}.")
+    else:
+        print("You don't see that here.")
+
+
+
+# this will let you look at items again, in case you forgot what they were
+def examine():
+    if inventory:
+        for item in inventory:
+            if item in items:
+                print(f"{item}: {items[item]['description']}")
+            else:
+                print(f"{item}: No description available.")
+    else:
+        print("You have nothing to examine.")
+
+# everyone needs debug commands
 def debug():
-    print(player_location)
+    print(f"Location: {player_location}")
+    print(f"Inventory: {inventory}")
 
-# lets make a commands dictionary - hopefully this works
+# lets make a commands dictionary - this seems to work and is easy to edit later
 commands = {
     "quit": quit_game,
+    "q": quit_game,
     "exit": quit_game,
-    "look": room_desc,
-    "inventory": inventory,
+    "inventory": show_inventory,
+    "inv": show_inventory,
     "north": move_north,
+    "n": move_north,
     "south": move_south,
+    "s": move_south,
     "east": move_east,
+    "e": move_east,
     "west": move_west,
-    "debug": debug
+    "w": move_west,
+    "debug": debug,
+    "examine": examine,
+    "help": help,
+    "look": room_desc,
+    "pick": pick_up,  
+    "pick up": pick_up,
+    "get": pick_up,
+    "grab": pick_up
 }
 
 
-# I think I want to keep game loop near the bottom so I can find it easier
+def help():
+    print("You can type the following commands:")
+    for command in commands:
+        print(f"- {command}")
+
+# Keeping the game loop at the bottom for now
 def game_loop():
-    room_desc()
     intro()
+    room_desc()
     while True:
         action = player_action()
-        if action in commands:
-            command = commands[action]
-            if callable(command):
-                command()
+        parts = action.split(" ", 1)  # Split into command and argument
+        command = parts[0]  # First part is the command
+        argument = parts[1] if len(parts) > 1 else None  # The rest is the argument
+
+        # Check if command is in the commands dictionary
+        if command in commands:
+            if argument:  # Pass argument to the command if it exists
+                commands[command](argument)
             else:
-                print(command)
+                commands[command]()  # Call command without arguments
         else:
             unknown_word()
 
 
-# I guess this will start the game?
+# This starts the actual game
 game_loop()
