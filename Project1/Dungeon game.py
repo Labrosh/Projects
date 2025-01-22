@@ -142,17 +142,31 @@ def show_inventory():
     else:
         print("You have nothing in your inventory.")
 
-# This is a nightmare
+# This is a nightmare - I am losing my mind
 def pick_up(item):
     global player_location
     current_room = rooms[player_location]
-    item = item.strip().lower()  # Clean and normalize the item name
-    if item in current_room["items"]:
-        inventory.append(item)
-        current_room["items"].remove(item)
-        print(f"You picked up the {item}.")
+
+    if not item:  # If no item is specified
+        print("What do you want to pick up?")
+        return
+
+    # Normalize item name
+    item = item.strip().lower()
+
+    # Normalize room items for comparison
+    normalized_items = [i.lower() for i in current_room["items"]]
+
+    if item in normalized_items:
+        # Find the actual item name to maintain formatting
+        actual_item = current_room["items"][normalized_items.index(item)]
+        inventory.append(actual_item)
+        current_room["items"].remove(actual_item)
+        print(f"You picked up the {actual_item}.")
     else:
         print("You don't see that here.")
+
+
 
 
 
@@ -166,6 +180,36 @@ def examine():
                 print(f"{item}: No description available.")
     else:
         print("You have nothing to examine.")
+
+# I hate this part
+def normalize_command(command):
+    """Normalize synonyms into a single standard command."""
+    synonyms = {
+        "pick up": "pick",
+        "get": "pick",
+        "grab": "pick",
+    }
+    return synonyms.get(command, command)  # Return normalized command or itself
+
+# and everything here is evil
+multi_word_commands = {"pick up", }  # Add other multi-word commands as needed
+
+# yep, this too
+def parse_action(action):
+    """Parse the action into a command and argument."""
+    words = action.lower().strip().split()  # Split input into words
+    if not words:
+        return None, None  # Handle empty input gracefully
+
+    # Check for multi-word commands
+    for length in range(2, len(words) + 1):  # Try multi-word combinations
+        command = " ".join(words[:length])
+        if command in multi_word_commands:
+            return normalize_command(command), " ".join(words[length:])  # Split command and argument
+
+    # Default: First word is the command, rest is the argument
+    return normalize_command(words[0]), " ".join(words[1:])
+
 
 # everyone needs debug commands
 def debug():
@@ -191,10 +235,7 @@ commands = {
     "examine": examine,
     "help": help,
     "look": room_desc,
-    "pick": pick_up,  
-    "pick up": pick_up,
-    "get": pick_up,
-    "grab": pick_up
+    "pick": pick_up, # this...should work?
 }
 
 
@@ -203,25 +244,20 @@ def help():
     for command in commands:
         print(f"- {command}")
 
-# Keeping the game loop at the bottom for now
+
 def game_loop():
     intro()
     room_desc()
     while True:
         action = player_action()
-        parts = action.split(" ", 1)  # Split into command and argument
-        command = parts[0]  # First part is the command
-        argument = parts[1] if len(parts) > 1 else None  # The rest is the argument
-
-        # Check if command is in the commands dictionary
+        command, argument = parse_action(action)
         if command in commands:
-            if argument:  # Pass argument to the command if it exists
+            if argument:
                 commands[command](argument)
             else:
-                commands[command]()  # Call command without arguments
+                commands[command]()
         else:
             unknown_word()
-
 
 # This starts the actual game
 game_loop()
