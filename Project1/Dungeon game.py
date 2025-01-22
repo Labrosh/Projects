@@ -86,6 +86,18 @@ def room_desc():
 
 # WOO THE INTRO! <- I should add ascii art!
 def intro():
+    print(r"""
+  ____  _   _ _   _  ____ _____ ___  _   _ 
+ |  _ \| | | | \ | |/ ___| ____/ _ \| \ | |
+ | | | | | | |  \| | |  _|  _|| | | |  \| |
+ | |_| | |_| | |\  | |_| | |__| |_| | |\  |
+ |____/ \___/|_|_\_|\____|_____\___/|_| \_|
+  / ___|  / \  |  \/  | ____|              
+ | |  _  / _ \ | |\/| |  _|                
+ | |_| |/ ___ \| |  | | |___               
+  \____/_/   \_\_|  |_|_____|              
+ 
+          """)
     print("Welcome to the dungeon.\n")
     print("You should start by looking around, or maybe checking your inventory.\n")
 
