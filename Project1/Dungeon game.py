@@ -155,28 +155,26 @@ def show_inventory():
         print("You have nothing in your inventory.")
 
 # This is a nightmare - I am losing my mind
-def pick_up(item):
+def pick_up(item=None):
+    """Pick up an item from the current room."""
     global player_location
     current_room = rooms[player_location]
 
-    if not item:  # If no item is specified
+    if not item:  # No item provided
         print("What do you want to pick up?")
-        return
+        return  # Exit the function early
 
-    # Normalize item name
-    item = item.strip().lower()
-
-    # Normalize room items for comparison
+    item = item.strip().lower()  # Normalize the item name
     normalized_items = [i.lower() for i in current_room["items"]]
 
     if item in normalized_items:
-        # Find the actual item name to maintain formatting
         actual_item = current_room["items"][normalized_items.index(item)]
         inventory.append(actual_item)
         current_room["items"].remove(actual_item)
         print(f"You picked up the {actual_item}.")
     else:
         print("You don't see that here.")
+
 
 
 
