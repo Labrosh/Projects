@@ -245,13 +245,13 @@ commands = {
     "w": move_west,
     "debug": debug,
     "examine": examine,
-    "help": help,
+    "help": show_help,
     "look": room_desc,
     "pick": pick_up, # this...should work?
 }
 
 
-def help():
+def show_help():
     print("You can type the following commands:")
     for command in commands:
         print(f"- {command}")
