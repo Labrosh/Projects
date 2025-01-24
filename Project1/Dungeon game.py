@@ -1,4 +1,5 @@
 import sys
+import random
 # we all start somewhere. This guy starts in the boring starting room
 player_location = "starting room"
 
@@ -88,6 +89,62 @@ def room_desc():
     print("="*40 + "\n")
 
 
+
+
+recent_prompts = []
+# I'm going to add a prompt function to give the player a prompt when they need to make a decision - randomized for variety
+def get_prompt():
+    prompts = [
+        "What do you want to do? ",
+        "What's next? ",
+        "What's your next move? ",
+        "What's the plan? ",
+        "What's the next step? ",
+        "The darkness is closing in. What now? ",
+        "The walls are closing in. What do you do? ",
+        "The shadows are moving. What's your move? ",
+        "The silence is deafening. What's next? ",
+        "The air is thick with anticipation. What's your next move? ",
+        "You feel a chill run down your spine. What do you do? ",
+        "You hear a faint whisper. What's your next move? ",
+        "You feel a presence watching you. What's your next move? ",
+        "You feel a sense of dread. What do you do? ",
+        "You feel a sense of foreboding. What's your next move? ",
+        "You feel a sense of unease. What do you do? ",
+        "Something smells foul. What's your next move? ",
+        "You hear a faint rustling. What's your next move? ",
+        "You hear a faint creaking. What do you do? ",
+        "Nice one, adventurer, but what's next? ",
+        "ah...this again. What's your next move? ",
+        "couldn't think of anything better? What's your next move? ",
+        "bored yet? What's your next move? ",
+        "I'm getting tired of this. What's your next move? ",
+        "I could have guessed that. What's your next move? ",
+        "I'm not impressed. What's your next move? ",
+        "I'm not amused. What's your next move? ",
+        "*Yawn* What's your next move? ",
+        "You're not very creative. What's your next move? ",
+    ]
+    available_prompts = [p for p in prompts if p not in recent_prompts]
+
+    if not available_prompts:
+        recent_prompts.clear()
+        available_prompts = prompts
+    
+    chosen_prompt = random.choice(available_prompts)
+
+    recent_prompts.append(chosen_prompt)
+    if len(recent_prompts) > 5:
+        recent_prompts.pop(0)
+    
+    return chosen_prompt
+
+
+
+
+
+
+
 # WOO THE INTRO! <- I should add ascii art!
 def intro():
     print("\n" + "="*40)
@@ -109,7 +166,8 @@ def intro():
 
 # boilerplate player action function
 def player_action():
-    player_action = input("What do you want to do? ").strip().lower()
+    prompt = get_prompt()
+    player_action = input(prompt).strip().lower()
     return player_action
 
 # quitting is fine
@@ -239,6 +297,7 @@ def parse_action(action):
 
     # Default: First word is the command, rest is the argument
     return normalize_command(words[0]), " ".join(words[1:])
+
 def show_help():
     print("\n" + "="*40)
     print("You can type the following commands:")
