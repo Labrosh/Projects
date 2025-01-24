@@ -176,10 +176,6 @@ def pick_up(item=None):
         print("You don't see that here.")
 
 
-
-
-
-
 # this will let you look at items again, in case you forgot what they were
 def examine():
     if inventory:
