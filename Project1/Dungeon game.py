@@ -221,7 +221,10 @@ def parse_action(action):
 
     # Default: First word is the command, rest is the argument
     return normalize_command(words[0]), " ".join(words[1:])
-
+def show_help():
+    print("You can type the following commands:")
+    for command in commands:
+        print(f"- {command}")
 
 # everyone needs debug commands
 def debug():
@@ -250,11 +253,6 @@ commands = {
     "pick": pick_up, # this...should work?
 }
 
-
-def show_help():
-    print("You can type the following commands:")
-    for command in commands:
-        print(f"- {command}")
 
 
 def game_loop():
