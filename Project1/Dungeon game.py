@@ -1,10 +1,27 @@
 import sys
 import random
-# we all start somewhere. This guy starts in the boring starting room
-player_location = "starting room"
 
-# lets get a list started so we can add items to it later
-inventory = []
+# Let's try Object Oriented Programming...
+
+# First let's make a class for the player
+class Player:
+    def __init__(self):
+        self.location = "starting room"
+        self.inventory = []
+
+    def add_to_inventory(self, item):
+        self.inventory.append(item)
+
+    def show_inventory(self):
+        if not self.inventory:
+            print("Your inventory is empty.")
+        else:
+            print("You have the following items:")
+            for item in self.inventory:
+                print(f"- {item}")
+
+player = Player()
+
 
 # I think I need to add a dictonary for items, and a function to give a descrption of the item if examanined or picked up
 items = {
@@ -78,10 +95,9 @@ rooms = {
 
 # this now prints the room description, and is helpful when moving between rooms
 def room_desc():
-    global player_location
-    room = rooms[player_location]
+    room = rooms[player.location]
     print("\n" + "="*40)
-    print(f"Location: {player_location.upper()}")
+    print(f"Location: {player.location.upper()}")
     print("-"*40)
     print(room["description"])
     if room["items"]:
@@ -185,16 +201,15 @@ def unknown_word():
 
 # this should help restric movement to only valid exits
 def move(direction):
-    global player_location
-    current_room = rooms[player_location]
+    current_room = rooms[player.location]
     if direction in current_room["exits"]:
         next_room = current_room["exits"][direction]
-        if "key" in rooms[next_room] and rooms[next_room]["key"] not in inventory:
+        if "key" in rooms[next_room] and rooms[next_room]["key"] not in player.inventory:
             print("\n" + "="*40)
             print(f"You need the {rooms[next_room]['key']} to enter this room.")
             print("="*40 + "\n")
         else:
-            player_location = next_room
+            player.location = next_room
             print("\n" + "="*40)
             print(f"You move {direction}.")
             print("="*40 + "\n")
@@ -221,46 +236,38 @@ def move_west():
     move("west")
 
 def show_inventory():
-    print("\n" + "="*40)
-    if inventory != []:
-        print("You have the following items in your inventory:")
-        for item in inventory:
-            print(f"- {item}")
-    else:
-        print("You have nothing in your inventory.")
-    print("="*40 + "\n")
+    player.show_inventory()
 
 # This is a nightmare - I am losing my mind
 def pick_up(item=None):
-    global player_location
-    current_room = rooms[player_location]
+    current_room = rooms[player.location]
 
     if not item:  # No item provided
-        print("\n" + "="*40)
+        print("\n" + "=" * 40)
         print("What do you want to pick up? Please type the full name of the item.")
-        print("="*40 + "\n")
+        print("=" * 40 + "\n")
         return  # Exit the function early
 
     item = item.strip().lower()  # Normalize the item name
     normalized_items = [i.lower() for i in current_room["items"]]
 
     if item in normalized_items:
-        actual_item = current_room["items"][normalized_items.index(item)]
-        inventory.append(actual_item)
-        current_room["items"].remove(actual_item)
-        print("\n" + "="*40)
+        actual_item = current_room["items"].pop(normalized_items.index(item))  # Remove from room
+        player.add_to_inventory(actual_item)  # Add to player's inventory
+        print("\n" + "=" * 40)
         print(f"You picked up the {actual_item}.")
-        print("="*40 + "\n")
+        print("=" * 40 + "\n")
     else:
-        print("\n" + "="*40)
+        print("\n" + "=" * 40)
         print("You don't see that here.")
-        print("="*40 + "\n")
+        print("=" * 40 + "\n")
+
 
 # this will let you look at items again, in case you forgot what they were
 def examine():
     print("\n" + "="*40)
-    if inventory:
-        for item in inventory:
+    if player.inventory:
+        for item in player.inventory:
             if item in items:
                 print(f"{item}: {items[item]['description']}")
             else:
@@ -308,8 +315,8 @@ def show_help():
 # everyone needs debug commands
 def debug():
     print("\n" + "="*40)
-    print(f"Location: {player_location}")
-    print(f"Inventory: {inventory}")
+    print(f"Location: {player.location}")
+    print(f"Inventory: {player.inventory}")
     print("="*40 + "\n")
 
 # lets make a commands dictionary - this seems to work and is easy to edit later
