@@ -79,13 +79,18 @@ rooms = {
 def room_desc():
     global player_location
     room = rooms[player_location]
+    print("\n" + "="*40)
+    print(f"Location: {player_location.upper()}")
+    print("-"*40)
     print(room["description"])
     if room["items"]:
-        print(f"You see the following items: {', '.join(room['items'])}")
+        print(f"\nYou see the following items: {', '.join(room['items'])}")
+    print("="*40 + "\n")
 
 
 # WOO THE INTRO! <- I should add ascii art!
 def intro():
+    print("\n" + "="*40)
     print(r"""
   ____  _   _ _   _  ____ _____ ___  _   _ 
  |  _ \| | | | \ | |/ ___| ____/ _ \| \ | |
@@ -100,6 +105,7 @@ def intro():
           """)
     print("Welcome to the dungeon.\n")
     print("You should start by looking around, or maybe checking your inventory.\n")
+    print("="*40 + "\n")
 
 # boilerplate player action function
 def player_action():
@@ -108,12 +114,16 @@ def player_action():
 
 # quitting is fine
 def quit_game():
+    print("\n" + "="*40)
     print("Goodbye, brave adventurer!")
+    print("="*40 + "\n")
     sys.exit()
 
 # yeah, stop typing weird things
 def unknown_word():
+    print("\n" + "="*40)
     print("I don't understand that word.")
+    print("="*40 + "\n")
 
 # this should help restric movement to only valid exits
 def move(direction):
@@ -122,13 +132,19 @@ def move(direction):
     if direction in current_room["exits"]:
         next_room = current_room["exits"][direction]
         if "key" in rooms[next_room] and rooms[next_room]["key"] not in inventory:
+            print("\n" + "="*40)
             print(f"You need the {rooms[next_room]['key']} to enter this room.")
+            print("="*40 + "\n")
         else:
             player_location = next_room
+            print("\n" + "="*40)
             print(f"You move {direction}.")
+            print("="*40 + "\n")
             room_desc()
     else:
+        print("\n" + "="*40)
         print("You can't go that way.")
+        print("="*40 + "\n")
 
 # why
 def move_north():
@@ -147,43 +163,44 @@ def move_west():
     move("west")
 
 def show_inventory():
+    print("\n" + "="*40)
     if inventory != []:
         print("You have the following items in your inventory:")
         for item in inventory:
             print(f"- {item}")
     else:
         print("You have nothing in your inventory.")
+    print("="*40 + "\n")
 
 # This is a nightmare - I am losing my mind
-def pick_up(item):
+def pick_up(item=None):
     global player_location
     current_room = rooms[player_location]
 
-    if not item:  # If no item is specified
-        print("What do you want to pick up?")
-        return
+    if not item:  # No item provided
+        print("\n" + "="*40)
+        print("What do you want to pick up? Please type the full name of the item.")
+        print("="*40 + "\n")
+        return  # Exit the function early
 
-    # Normalize item name
-    item = item.strip().lower()
-
-    # Normalize room items for comparison
+    item = item.strip().lower()  # Normalize the item name
     normalized_items = [i.lower() for i in current_room["items"]]
 
     if item in normalized_items:
-        # Find the actual item name to maintain formatting
         actual_item = current_room["items"][normalized_items.index(item)]
         inventory.append(actual_item)
         current_room["items"].remove(actual_item)
+        print("\n" + "="*40)
         print(f"You picked up the {actual_item}.")
+        print("="*40 + "\n")
     else:
+        print("\n" + "="*40)
         print("You don't see that here.")
-
-
-
-
+        print("="*40 + "\n")
 
 # this will let you look at items again, in case you forgot what they were
 def examine():
+    print("\n" + "="*40)
     if inventory:
         for item in inventory:
             if item in items:
@@ -192,6 +209,7 @@ def examine():
                 print(f"{item}: No description available.")
     else:
         print("You have nothing to examine.")
+    print("="*40 + "\n")
 
 # I hate this part
 def normalize_command(command):
@@ -222,14 +240,18 @@ def parse_action(action):
     # Default: First word is the command, rest is the argument
     return normalize_command(words[0]), " ".join(words[1:])
 def show_help():
+    print("\n" + "="*40)
     print("You can type the following commands:")
     for command in commands:
         print(f"- {command}")
+    print("="*40 + "\n")
 
 # everyone needs debug commands
 def debug():
+    print("\n" + "="*40)
     print(f"Location: {player_location}")
     print(f"Inventory: {inventory}")
+    print("="*40 + "\n")
 
 # lets make a commands dictionary - this seems to work and is easy to edit later
 commands = {
@@ -262,12 +284,18 @@ def game_loop():
         action = player_action()
         command, argument = parse_action(action)
         if command in commands:
-            if argument:
-                commands[command](argument)
-            else:
-                commands[command]()
+            try:
+                if argument:
+                    commands[command](argument)
+                else:
+                    commands[command]()
+            except TypeError:
+                print("\n" + "="*40)
+                print(f"The command '{command}' requires additional input. Please try again.")
+                print("="*40 + "\n")
         else:
             unknown_word()
+
 
 # This starts the actual game
 game_loop()
