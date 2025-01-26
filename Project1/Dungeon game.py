@@ -23,6 +23,25 @@ class Player:
 player = Player()
 
 
+# Next I am going to try and make a class for rooms
+
+class Room:
+    def __init__(self, description, items=None, exits=None, key=None):
+        self.description = description  # Fixed typo here
+        self.items = items if items else []
+        self.exits = exits if exits else {}
+        self.key = key
+
+    def describe(self):
+        print("\n" + "="*40)
+        print(self.description)
+        if self.items:
+            print(f"\nYou see the following items: {', '.join(self.items)}")
+        print("="*40 + "\n")
+
+    def is_locked(self, player_inventory):
+        return self.key and self.key not in player_inventory
+
 # I think I need to add a dictonary for items, and a function to give a descrption of the item if examanined or picked up
 items = {
     "slimy key": {
@@ -41,56 +60,40 @@ items = {
 
 # I'm going to add a dictionary for the rooms, and then add a function to print the room description
 rooms = {
-    "starting room": {
-        "description": "You find yourself inside a blank square room. There is an exit to the north, south, east, and west.",
-        "exits": {
-            "north": "north room",
-            "south": "south room",
-            "east": "east room",
-            "west": "west room"
-        },
-        "items": []  # there are no items in this room
-    },
-    "north room": {
-        "description": "You are in a room with stone walls. There is an exit to the south. You see a stone key on the ground.",
-        "exits": {
-            "south": "starting room"
-        },
-        "items": ["stone key"]  # this is the item in the room, which leads to the south room
-    },
-    "south room": {
-        "description": "You are in a damp, dark room. There is an exit to the north. You see a slimy key on the ground.",
-        "exits": {
-            "north": "starting room"
-        },
-        "items": ["slimy key"],  # this is the item in the room, which leads to the east room
-        "key": "stone key"  # this is the key needed to enter this room
-    },
-    "east room": {
-        "description": "You are in a brightly lit room. There is an exit to the west. You see a shiny key on the ground.",
-        "exits": {
-            "west": "starting room"
-        },
-        "items": ["shiny key"],  # this is the item in the room, which leads to the west room
-        "key": "slimy key"  # this is the key needed to enter this room
-    },
-    "west room": {
-        "description": "You are in a room filled with ancient artifacts. There is an exit to the east, and to the west. You see an ancient key on the ground.",
-        "exits": {
-            "east": "starting room",
-            "west": "dungeon exit"
-        },
-        "items": ["ancient key"],  # this is the item in the room, which leads to the dungeon exit
-        "key": "shiny key"  # this is the key needed to enter this room
-    },
-    "dungeon exit": {
-        "description": "You have found the exit to the dungeon. Congratulations!",
-        "exits": {
-            "east": "west room"
-        },
-        "items": [],  # there are no items in this room
-        "key": "ancient key"  # this is the key needed to exit the dungeon
-    }
+    "starting room": Room(
+        description="You find yourself inside a blank square room. There is an exit to the north, south, east, and west.",
+        exits={"north": "north room", "south": "south room", "east": "east room", "west": "west room"},
+        items=[]
+    ),
+    "north room": Room(
+        description="You are in a room with stone walls. There is an exit to the south. You see a stone key on the ground.",
+        exits={"south": "starting room"},
+        items=["stone key"]
+    ),
+    "south room": Room(
+        description="You are in a damp, dark room. There is an exit to the north. You see a slimy key on the ground.",
+        exits={"north": "starting room"},
+        items=["slimy key"],
+        key="stone key"
+    ),
+    "east room": Room(
+        description="You are in a brightly lit room. There is an exit to the west. You see a shiny key on the ground.",
+        exits={"west": "starting room"},
+        items=["shiny key"],
+        key="slimy key"
+    ),
+    "west room": Room(
+        description="You are in a room filled with ancient artifacts. There is an exit to the east, and to the west. You see an ancient key on the ground.",
+        exits={"east": "starting room", "west": "dungeon exit"},
+        items=["ancient key"],
+        key="shiny key"
+    ),
+    "dungeon exit": Room(
+        description="You have found the exit to the dungeon. Congratulations!",
+        exits={"east": "west room"},
+        items=[],
+        key="ancient key"
+    )
 }
 
 # this now prints the room description, and is helpful when moving between rooms
@@ -99,9 +102,7 @@ def room_desc():
     print("\n" + "="*40)
     print(f"Location: {player.location.upper()}")
     print("-"*40)
-    print(room["description"])
-    if room["items"]:
-        print(f"\nYou see the following items: {', '.join(room['items'])}")
+    room.describe()
     print("="*40 + "\n")
 
 
@@ -202,22 +203,24 @@ def unknown_word():
 # this should help restric movement to only valid exits
 def move(direction):
     current_room = rooms[player.location]
-    if direction in current_room["exits"]:
-        next_room = current_room["exits"][direction]
-        if "key" in rooms[next_room] and rooms[next_room]["key"] not in player.inventory:
+    if direction in current_room.exits:
+        next_room_name = current_room.exits[direction]
+        next_room = rooms[next_room_name]
+        if next_room.is_locked(player.inventory):
             print("\n" + "="*40)
-            print(f"You need the {rooms[next_room]['key']} to enter this room.")
+            print(f"You need the {next_room.key} to enter this room.")
             print("="*40 + "\n")
         else:
-            player.location = next_room
+            player.location = next_room_name
             print("\n" + "="*40)
             print(f"You move {direction}.")
             print("="*40 + "\n")
-            room_desc()
+            next_room.describe()
     else:
         print("\n" + "="*40)
         print("You can't go that way.")
         print("="*40 + "\n")
+
 
 # why
 def move_north():
@@ -249,10 +252,10 @@ def pick_up(item=None):
         return  # Exit the function early
 
     item = item.strip().lower()  # Normalize the item name
-    normalized_items = [i.lower() for i in current_room["items"]]
+    normalized_items = [i.lower() for i in current_room.items]
 
     if item in normalized_items:
-        actual_item = current_room["items"].pop(normalized_items.index(item))  # Remove from room
+        actual_item = current_room.items.pop(normalized_items.index(item))  # Remove from room
         player.add_to_inventory(actual_item)  # Add to player's inventory
         print("\n" + "=" * 40)
         print(f"You picked up the {actual_item}.")
