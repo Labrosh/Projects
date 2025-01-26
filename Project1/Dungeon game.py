@@ -1,8 +1,6 @@
 import sys
 import random
 
-# Let's try Object Oriented Programming...
-
 class Game:
     def __init__(self, player, rooms):
         self.player = player
@@ -55,7 +53,33 @@ class Game:
     def get_prompt(self):
         prompts = [
             "What do you want to do? ",
-            # ...existing prompts...
+            "What's next? ",
+            "What's your next move? ",
+            "What's the plan? ",
+            "What's the next step? ",
+            "The darkness is closing in. What now? ",
+            "The walls are closing in. What do you do? ",
+            "The shadows are moving. What's your move? ",
+            "The silence is deafening. What's next? ",
+            "The air is thick with anticipation. What's your next move? ",
+            "You feel a chill run down your spine. What do you do? ",
+            "You hear a faint whisper. What's your next move? ",
+            "You feel a presence watching you. What's your next move? ",
+            "You feel a sense of dread. What do you do? ",
+            "You feel a sense of foreboding. What's your next move? ",
+            "You feel a sense of unease. What do you do? ",
+            "Something smells foul. What's your next move? ",
+            "You hear a faint rustling. What's your next move? ",
+            "You hear a faint creaking. What do you do? ",
+            "Nice one, adventurer, but what's next? ",
+            "Ah...this again. What's your next move? ",
+            "Couldn't think of anything better? What's your next move? ",
+            "Bored yet? What's your next move? ",
+            "I'm getting tired of this. What's your next move? ",
+            "I could have guessed that. What's your next move? ",
+            "I'm not impressed. What's your next move? ",
+            "I'm not amused. What's your next move? ",
+            "*Yawn* What's your next move? ",
             "You're not very creative. What's your next move? ",
         ]
         available_prompts = [p for p in prompts if p not in self.recent_prompts]
@@ -73,8 +97,7 @@ class Game:
         return chosen_prompt
 
     def intro(self):
-        print("\n" + "="*40)
-        print(r"""
+        self.print_block(r"""
   ____  _   _ _   _  ____ _____ ___  _   _ 
  |  _ \| | | | \ | |/ ___| ____/ _ \| \ | |
  | | | | | | |  \| | |  _|  _|| | | |  \| |
@@ -84,16 +107,12 @@ class Game:
  | |  _  / _ \ | |\/| |  _|                
  | |_| |/ ___ \| |  | | |___               
   \____/_/   \_\_|  |_|_____|              
- 
-          """)
-        print("Welcome to the dungeon.\n")
-        print("You should start by looking around, or maybe checking your inventory.\n")
-        print("="*40 + "\n")
+        """)
+        self.print_block("Welcome to the dungeon.\nYou should start by looking around, or maybe checking your inventory.")
 
     def player_action(self):
         prompt = self.get_prompt()
-        player_action = input(prompt).strip().lower()
-        return player_action
+        return input(prompt).strip().lower()
 
     def quit_game(self):
         self.print_block("Goodbye, brave adventurer!")
@@ -180,7 +199,6 @@ class Game:
             self.handle_command(command, argument)
 
 
-# First let's make a class for the player
 class Player:
     def __init__(self):
         self.location = "starting room"
@@ -197,15 +215,6 @@ class Player:
             for item in self.inventory:
                 print(f"- {item.name}")
 
-player = Player()
-
-def print_block(message):
-    print("\n" + "="*40)
-    print(message)
-    print("="*40 + "\n")
-
-
-# Next I am going to try and make a class for rooms
 
 class Room:
     def __init__(self, description, items=None, exits=None, key=None):
@@ -238,7 +247,7 @@ class Item:
     def describe(self):
         print(f"{self.name}: {self.description}")
 
-# We need to fix this so it works with class Item
+
 items = {
     "slimy key": Item(
         name="slimy key",
@@ -258,7 +267,7 @@ items = {
     )
 }
 
-# I'm going to add a dictionary for the rooms, and then add a function to print the room description
+
 rooms = {
     "starting room": Room(
         description="You find yourself inside a blank square room. There is an exit to the north, south, east, and west.",
@@ -296,6 +305,6 @@ rooms = {
     )
 }
 
-# This starts the actual game
-game = Game(player, rooms)
+
+game = Game(Player(), rooms)
 game.game_loop()
