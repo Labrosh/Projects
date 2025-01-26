@@ -18,9 +18,14 @@ class Player:
         else:
             print("You have the following items:")
             for item in self.inventory:
-                print(f"- {item}")
+                print(f"- {item.name}")
 
 player = Player()
+
+def print_block(message):
+    print("\n" + "="*40)
+    print(message)
+    print("="*40 + "\n")
 
 
 # Next I am going to try and make a class for rooms
@@ -36,26 +41,47 @@ class Room:
         print("\n" + "="*40)
         print(self.description)
         if self.items:
-            print(f"\nYou see the following items: {', '.join(self.items)}")
+            print("\nYou see the following items:")
+            for item in self.items:
+                print(f"- {item.name}")
         print("="*40 + "\n")
 
     def is_locked(self, player_inventory):
-        return self.key and self.key not in player_inventory
+        return self.key and not any(item.name == self.key for item in player_inventory)
+    
+    def find_item_by_name(self, item_name):
+        for item in self.items:
+            if item.name == item_name:
+                return item
+        return None
 
-# I think I need to add a dictonary for items, and a function to give a descrption of the item if examanined or picked up
+
+class Item:
+    def __init__(self, name, description):
+        self.name = name
+        self.description = description
+
+    def describe(self):
+        print(f"{self.name}: {self.description}")
+
+# We need to fix this so it works with class Item
 items = {
-    "slimy key": {
-        "description": "A slimy key that smells of old fish. You found this in the south room."
-    },
-    "stone key": {
-        "description": "A heavy key made of stone. You found this in the north room."
-    },
-    "shiny key": {
-        "description": "A shiny key that sparkles in the light. You found this in the east room."
-    },
-    "ancient key": {
-        "description": "An ancient key that looks like it's been around for centuries. You found this in the west room. It seems to be bigger than the other keys you've found."
-    }
+    "slimy key": Item(
+        name="slimy key",
+        description="A slimy key that smells of old fish. You found this in the south room."
+    ),
+    "stone key": Item(
+        name="stone key",
+        description="A heavy key made of stone. You found this in the north room."
+    ),
+    "shiny key": Item(
+        name="shiny key",
+        description="A shiny key that sparkles in the light. You found this in the east room."
+    ),
+    "ancient key": Item(
+        name="ancient key",
+        description="An ancient key that looks like it's been around for centuries. You found this in the west room. It seems to be bigger than the other keys you've found."
+    )
 }
 
 # I'm going to add a dictionary for the rooms, and then add a function to print the room description
@@ -68,24 +94,24 @@ rooms = {
     "north room": Room(
         description="You are in a room with stone walls. There is an exit to the south. You see a stone key on the ground.",
         exits={"south": "starting room"},
-        items=["stone key"]
+        items=[items["stone key"]]
     ),
     "south room": Room(
         description="You are in a damp, dark room. There is an exit to the north. You see a slimy key on the ground.",
         exits={"north": "starting room"},
-        items=["slimy key"],
+        items=[items["slimy key"]],
         key="stone key"
     ),
     "east room": Room(
         description="You are in a brightly lit room. There is an exit to the west. You see a shiny key on the ground.",
         exits={"west": "starting room"},
-        items=["shiny key"],
+        items=[items["shiny key"]],
         key="slimy key"
     ),
     "west room": Room(
         description="You are in a room filled with ancient artifacts. There is an exit to the east, and to the west. You see an ancient key on the ground.",
         exits={"east": "starting room", "west": "dungeon exit"},
-        items=["ancient key"],
+        items=[items["ancient key"]],
         key="shiny key"
     ),
     "dungeon exit": Room(
@@ -189,16 +215,12 @@ def player_action():
 
 # quitting is fine
 def quit_game():
-    print("\n" + "="*40)
-    print("Goodbye, brave adventurer!")
-    print("="*40 + "\n")
+    print_block("Goodbye, brave adventurer!")
     sys.exit()
 
 # yeah, stop typing weird things
 def unknown_word():
-    print("\n" + "="*40)
-    print("I don't understand that word.")
-    print("="*40 + "\n")
+    print_block("I don't understand that word.")
 
 # this should help restric movement to only valid exits
 def move(direction):
@@ -207,19 +229,13 @@ def move(direction):
         next_room_name = current_room.exits[direction]
         next_room = rooms[next_room_name]
         if next_room.is_locked(player.inventory):
-            print("\n" + "="*40)
-            print(f"You need the {next_room.key} to enter this room.")
-            print("="*40 + "\n")
+            print_block(f"You need the {next_room.key} to enter this room.")
         else:
             player.location = next_room_name
-            print("\n" + "="*40)
-            print(f"You move {direction}.")
-            print("="*40 + "\n")
-            next_room.describe()
+            print_block(f"You move {direction}.")
+            room_desc()
     else:
-        print("\n" + "="*40)
-        print("You can't go that way.")
-        print("="*40 + "\n")
+        print_block("You can't go that way.")
 
 
 # why
@@ -242,28 +258,22 @@ def show_inventory():
     player.show_inventory()
 
 # This is a nightmare - I am losing my mind
-def pick_up(item=None):
+def pick_up(item_name=None):
     current_room = rooms[player.location]
 
-    if not item:  # No item provided
-        print("\n" + "=" * 40)
-        print("What do you want to pick up? Please type the full name of the item.")
-        print("=" * 40 + "\n")
-        return  # Exit the function early
+    if not item_name:  # No item provided
+        print_block("What do you want to pick up? Please type the full name of the item.")
+        return
 
-    item = item.strip().lower()  # Normalize the item name
-    normalized_items = [i.lower() for i in current_room.items]
-
-    if item in normalized_items:
-        actual_item = current_room.items.pop(normalized_items.index(item))  # Remove from room
-        player.add_to_inventory(actual_item)  # Add to player's inventory
-        print("\n" + "=" * 40)
-        print(f"You picked up the {actual_item}.")
-        print("=" * 40 + "\n")
+    item = current_room.find_item_by_name(item_name.strip().lower())
+    if item:
+        current_room.items.remove(item)
+        player.add_to_inventory(item)
+        print_block(f"You picked up the {item.name}.")
     else:
-        print("\n" + "=" * 40)
-        print("You don't see that here.")
-        print("=" * 40 + "\n")
+        available_items = ", ".join(item.name for item in current_room.items)
+        print_block(f"You don't see that here. Items in the room: {available_items if available_items else 'None'}")
+
 
 
 # this will let you look at items again, in case you forgot what they were
@@ -271,10 +281,7 @@ def examine():
     print("\n" + "="*40)
     if player.inventory:
         for item in player.inventory:
-            if item in items:
-                print(f"{item}: {items[item]['description']}")
-            else:
-                print(f"{item}: No description available.")
+            item.describe()
     else:
         print("You have nothing to examine.")
     print("="*40 + "\n")
@@ -309,18 +316,13 @@ def parse_action(action):
     return normalize_command(words[0]), " ".join(words[1:])
 
 def show_help():
-    print("\n" + "="*40)
-    print("You can type the following commands:")
-    for command in commands:
-        print(f"- {command}")
-    print("="*40 + "\n")
+    help_message = "You can type the following commands:\n" + "\n".join(f"- {command}" for command in commands)
+    print_block(help_message)
 
 # everyone needs debug commands
 def debug():
-    print("\n" + "="*40)
-    print(f"Location: {player.location}")
-    print(f"Inventory: {player.inventory}")
-    print("="*40 + "\n")
+    debug_message = f"Location: {player.location}\nInventory: {player.inventory}"
+    print_block(debug_message)
 
 # lets make a commands dictionary - this seems to work and is easy to edit later
 commands = {
@@ -359,9 +361,7 @@ def game_loop():
                 else:
                     commands[command]()
             except TypeError:
-                print("\n" + "="*40)
-                print(f"The command '{command}' requires additional input. Please try again.")
-                print("="*40 + "\n")
+                print_block(f"The command '{command}' requires additional input. Please try again.")
         else:
             unknown_word()
 
