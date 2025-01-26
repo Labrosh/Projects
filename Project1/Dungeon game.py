@@ -200,8 +200,8 @@ class Game:
 
 
 class Player:
-    def __init__(self):
-        self.location = "starting room"
+    def __init__(self, starting_room):
+        self.location = starting_room
         self.inventory = []
 
     def add_to_inventory(self, item):
@@ -248,6 +248,31 @@ class Item:
         print(f"{self.name}: {self.description}")
 
 
+# making a new dungeon class to make randomized dungeons!
+
+class Dungeon: # this class will generate a random dungeon with a random number of rooms
+    def __init__(self, size = 5):
+        self.size = size
+        self.rooms = {}
+    def generate_rooms(self): 
+        for i in range(self.size):
+            room_name = f"Room {i + 1}"
+            description = f"You are in {room_name}." # this is a placeholder description
+            self.rooms[room_name] = Room(description=description, items=[], exits={}, key=None)
+        room_names = list(self.rooms.keys())
+
+        # I was told to try linear connections first
+        for i in range(len(room_names) - 1):
+            self.rooms[room_names[i]].exits["east"] = room_names[i + 1] # this will connect the rooms in a linear fashion
+            self.rooms[room_names[i + 1]].exits["west"] = room_names[i]
+        
+        # Debug print
+        for room in self.rooms.values():
+            print(f"{room.description} has exits: {room.exits}")
+    
+    def get_starting_room(self):
+        return list(self.rooms.keys())[0] # huh, I...don't know what this code does < AI suggested this code
+        
 items = {
     "slimy key": Item(
         name="slimy key",
@@ -268,43 +293,11 @@ items = {
 }
 
 
-rooms = {
-    "starting room": Room(
-        description="You find yourself inside a blank square room. There is an exit to the north, south, east, and west.",
-        exits={"north": "north room", "south": "south room", "east": "east room", "west": "west room"},
-        items=[]
-    ),
-    "north room": Room(
-        description="You are in a room with stone walls. There is an exit to the south. You see a stone key on the ground.",
-        exits={"south": "starting room"},
-        items=[items["stone key"]]
-    ),
-    "south room": Room(
-        description="You are in a damp, dark room. There is an exit to the north. You see a slimy key on the ground.",
-        exits={"north": "starting room"},
-        items=[items["slimy key"]],
-        key="stone key"
-    ),
-    "east room": Room(
-        description="You are in a brightly lit room. There is an exit to the west. You see a shiny key on the ground.",
-        exits={"west": "starting room"},
-        items=[items["shiny key"]],
-        key="slimy key"
-    ),
-    "west room": Room(
-        description="You are in a room filled with ancient artifacts. There is an exit to the east, and to the west. You see an ancient key on the ground.",
-        exits={"east": "starting room", "west": "dungeon exit"},
-        items=[items["ancient key"]],
-        key="shiny key"
-    ),
-    "dungeon exit": Room(
-        description="You have found the exit to the dungeon. Congratulations!",
-        exits={"east": "west room"},
-        items=[],
-        key="ancient key"
-    )
-}
+dungeon = Dungeon(size=5)
+dungeon.generate_rooms()
+rooms = dungeon.rooms
 
-
-game = Game(Player(), rooms)
+starting_room = dungeon.get_starting_room()
+player = Player(starting_room)
+game = Game(player, rooms)
 game.game_loop()
