@@ -20,3 +20,15 @@ dungeon_map.png
 
 # Ignore test files
 test_*.py
+
+# Ignore log files
+*.log
+
+# Ignore temporary files
+*.tmp
+*.bak
+*.swp
+
+# Ignore build directories
+build/
+dist/
