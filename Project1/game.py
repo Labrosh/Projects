@@ -26,7 +26,10 @@ class Game:
         self.dungeon = dungeon  # Store the dungeon reference
         self.recent_prompts = []
         self.debug_mode = False  # Add a flag for debug mode
-        self.commands = {
+        self.commands = self.initialize_commands()
+
+    def initialize_commands(self):
+        return {
             "quit": self.quit_game,
             "q": self.quit_game,
             "exit": self.quit_game,
