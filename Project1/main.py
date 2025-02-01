@@ -10,5 +10,5 @@ rooms = dungeon.rooms
 
 starting_room = dungeon.get_starting_room()
 player = Player(starting_room)
-game = Game(player, rooms)
+game = Game(player, rooms, dungeon)  # Pass dungeon to Game
 game.game_loop()

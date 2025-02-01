@@ -1,6 +1,6 @@
 class Item:
     def __init__(self, name, description):
-        self.name = name
+        self.name = name.lower()  # Store item names in lowercase
         self.description = description
 
     def describe(self):

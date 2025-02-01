@@ -5,9 +5,10 @@ from room import Room
 from item import Item
 
 class Game:
-    def __init__(self, player, rooms):
+    def __init__(self, player, rooms, dungeon):  # Add dungeon parameter
         self.player = player
         self.rooms = rooms
+        self.dungeon = dungeon  # Store the dungeon reference
         self.recent_prompts = []
         self.commands = {
             "quit": self.quit_game,
@@ -126,15 +127,27 @@ class Game:
 
     def move(self, direction):
         current_room = self.rooms[self.player.location]
+
         if direction in current_room.exits:
-            next_room_name = current_room.exits[direction]
-            next_room = self.rooms[next_room_name]
-            if next_room.is_locked(self.player.inventory):
-                self.print_block(f"You need the {next_room.key} to enter this room.")
-            else:
-                self.player.location = next_room_name
-                self.print_block(f"You move {direction}.")
-                self.room_desc()
+            exit_data = current_room.exits[direction]  # Get the exit dictionary
+            next_room_name = exit_data["room"]
+
+            if exit_data["locked"]:  # If the door is locked
+                required_key = exit_data["key"].lower()  # Ensure key comparison is case-insensitive
+                if any(item.name == required_key for item in self.player.inventory):  # Check if player has the key
+                    self.print_block(f"You use the {required_key} to unlock the door.")
+                    exit_data["locked"] = False  # Unlock the door permanently
+                else:
+                    self.print_block(f"The door is locked. You need the {exit_data['key']} to open it.")
+                    return  # Stop movement
+
+            self.player.location = next_room_name
+            self.print_block(f"You move {direction}.")
+            self.room_desc()
+
+            if self.player.location == self.dungeon.exit_room:  # Check if the player is in the exit room
+                self.print_block("Congratulations! You have escaped the dungeon!")
+                sys.exit()  # Ends the game
         else:
             self.print_block("You can't go that way.")
 
