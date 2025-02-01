@@ -40,6 +40,14 @@ Run the following command to start the game:
 python main.py
 ```
 
+## Debug Mode
+To enable debug mode and print detailed information about the dungeon, type the following command during gameplay:
+```
+enable_debug
+```
+
+This will print room exits and key placements to help you debug and understand the dungeon layout.
+
 ## Files
 - `main.py`: Entry point of the application.
 - `game.py`: Contains the `Game` class which handles the main game logic.
@@ -47,6 +55,7 @@ python main.py
 - `room.py`: Contains the `Room` class which represents a room in the dungeon.
 - `item.py`: Contains the `Item` class and the `items` dictionary.
 - `dungeon.py`: Contains the `Dungeon` class which generates the dungeon.
+- `debug.py`: Contains debug functions for printing detailed information about the dungeon.
 - `__init__.py`: Marks the directory as a package.
 
 ## License

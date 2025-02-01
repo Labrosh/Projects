@@ -1,6 +1,7 @@
 import random
 from room import Room
-from item import Item  
+from item import Item
+from debug import debug_dungeon  # Import debug function
 
 class Dungeon:
     def __init__(self, size=3):  # Default to 3x3 but expandable
@@ -15,7 +16,6 @@ class Dungeon:
         self.ensure_full_connectivity()
         self.place_keys()
         self.place_exit()
-        print("Dungeon generation complete!")
 
     def create_grid(self):
         """Creates a grid of rooms, with an extra exit room outside the grid."""
@@ -66,9 +66,12 @@ class Dungeon:
             self.add_exit(room_name, f"Room {row}-{col+1}", "east", "west")
 
     def add_exit(self, room_a, room_b, dir_a, dir_b):
-        """Adds a bidirectional exit between two rooms."""
-        self.rooms[room_a].exits[dir_a] = {"room": room_b, "locked": False, "key": None}
-        self.rooms[room_b].exits[dir_b] = {"room": room_a, "locked": False, "key": None}
+        """Adds a bidirectional exit between two rooms, sometimes locking it."""
+        locked = random.random() < 0.25  # 25% chance to lock a door
+        key_name = f"key to {room_b}" if locked else None
+
+        self.rooms[room_a].exits[dir_a] = {"room": room_b, "locked": locked, "key": key_name}
+        self.rooms[room_b].exits[dir_b] = {"room": room_a, "locked": locked, "key": key_name}
 
     def ensure_full_connectivity(self):
         """Ensures that all rooms are connected and accessible."""
@@ -82,16 +85,20 @@ class Dungeon:
         """Places keys in rooms for locked doors."""
         for room in self.rooms.values():
             for exit_data in room.exits.values():
-                if exit_data["locked"]:
+                if exit_data["locked"] and exit_data["key"]:  # Ensure locked doors get keys
                     self.place_key_for_exit(exit_data)
 
     def place_key_for_exit(self, exit_data):
-        """Places a key for a locked exit in a random room."""
+        """Places a key for a locked exit in a valid room, ensuring each room gets at most one key."""
         key_name = f"key to {exit_data['room']}"
         exit_data["key"] = key_name
-        random.choice(list(self.rooms.values())).items.append(
-            Item(name=key_name, description=f"A key that unlocks {exit_data['room']}.")
-        )
+
+        # Filter rooms that don't already have a key
+        valid_rooms = [r for r in self.rooms.values() if not any(item.name.startswith("key to") for item in r.items)]
+        
+        if valid_rooms:
+            chosen_room = random.choice(valid_rooms)
+            chosen_room.items.append(Item(name=key_name, description=f"A mysterious key labeled '{key_name}'"))
 
     def place_exit(self):
         """Places the exit in the extra room, ensuring a long enough path."""

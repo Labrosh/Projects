@@ -6,8 +6,8 @@ from dungeon import Dungeon
 
 dungeon = Dungeon(size=5)
 dungeon.generate_rooms()
-rooms = dungeon.rooms
 
+rooms = dungeon.rooms
 starting_room = dungeon.get_starting_room()
 player = Player(starting_room)
 game = Game(player, rooms, dungeon)  # Pass dungeon to Game
