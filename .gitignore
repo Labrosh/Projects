@@ -17,3 +17,6 @@ Thumbs.db
 
 # Ignore generated map images
 dungeon_map.png
+
+# Ignore test files
+test_*.py
