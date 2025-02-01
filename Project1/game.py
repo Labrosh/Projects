@@ -1,5 +1,16 @@
 import sys
 import random
+import matplotlib
+
+# Try to use the TkAgg backend, fallback to Agg if it fails
+try:
+    import tkinter
+    matplotlib.use("TkAgg")  # Use the Tkinter backend for interactive plotting
+    interactive_backend = True
+except ImportError:
+    matplotlib.use("Agg")  # Use the Agg backend for non-interactive plotting
+    interactive_backend = False
+
 import matplotlib.pyplot as plt  # Add import for matplotlib
 from player import Player
 from room import Room
@@ -211,8 +222,6 @@ class Game:
     def show_map(self):
         """Displays a graphical map of the dungeon using matplotlib."""
         grid_size = self.dungeon.grid_size
-        extra_row = 1 if self.dungeon.extra_exit_row else 0
-        extra_col = 1 if not self.dungeon.extra_exit_row else 0
         fig, ax = plt.subplots(figsize=(5, 5))
 
         for room_name, room in self.dungeon.rooms.items():
@@ -228,16 +237,20 @@ class Game:
                 exit_row, exit_col = map(int, exit_data["room"].replace("Room ", "").split("-"))
                 ax.plot([col, exit_col], [-row, -exit_row], 'k-', linewidth=2)  # Path between rooms
 
-        # Configure the plot for display
-        ax.set_xticks(range(grid_size + extra_col))
-        ax.set_yticks(range(-(grid_size + extra_row), 1))
+        ax.set_xticks(range(grid_size))
+        ax.set_yticks(range(-grid_size, 1))
         ax.set_xticklabels([])
         ax.set_yticklabels([])
-        ax.set_xlim(-0.5, grid_size + extra_col - 0.5)
-        ax.set_ylim(-(grid_size + extra_row) + 0.5, 0.5)
+        ax.set_xlim(-0.5, grid_size - 0.5)
+        ax.set_ylim(-grid_size + 0.5, 0.5)
         ax.grid(True)
         plt.title("Dungeon Map")
-        plt.show()
+
+        if interactive_backend:
+            plt.show()
+        else:
+            plt.savefig("dungeon_map.png")
+            print("Dungeon map saved as dungeon_map.png")
 
     def game_loop(self):
         self.intro()
