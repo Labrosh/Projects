@@ -1,75 +1,76 @@
-# Project1
+# Dungeon Game
 
-## Overview
-Project1 is a text-based dungeon game where players can explore rooms, pick up items, and navigate through a dungeon. The game features a graphical map display using `matplotlib` and `networkx`.
+Welcome to the Dungeon Game! This is a text-based adventure game where you explore a dungeon, collect items, and try to find the exit.
 
-## Setup
-1. Clone the repository.
-2. Navigate to the `Project1` directory.
-3. Ensure you have Python installed.
+## Table of Contents
 
-## Dependencies
-The game requires the following Python packages:
-- `matplotlib`
-- `networkx`
-- `numpy`
-- `python-dateutil`
-- `pyparsing`
-- `pillow`
-- `packaging`
-- `fonttools`
-- `cycler`
-- `kiwisolver`
-- `six`
-- `contourpy`
+- [Introduction](#introduction)
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Gameplay](#gameplay)
+- [Contributing](#contributing)
+- [License](#license)
 
-You can install the required packages using `pip`:
-```bash
-pip install -r requirements.txt
-```
+## Introduction
 
-### Optional: `tkinter`
-The game uses `tkinter` for graphical display if available. If `tkinter` is not installed, the game will fall back to console output and non-interactive plotting.
+Dungeon Game is a text-based adventure game developed by [Labrosh](https://github.com/Labrosh). The game generates a dungeon with multiple rooms, items, and locked doors. Your goal is to explore the dungeon, collect items, and find the exit.
 
-#### Installing `tkinter`
-- **Ubuntu/Debian**:
-  ```bash
-  sudo apt-get install python3-tk
-  ```
-- **Fedora**:
-  ```bash
-  sudo dnf install python3-tkinter
-  ```
-- **macOS (using Homebrew)**:
-  ```bash
-  brew install python-tk
-  ```
+## Features
 
-## How to Run
-Run the following command to start the game:
-```bash
+- Randomly generated dungeon with multiple rooms
+- Items to collect and use
+- Locked doors that require keys to open
+- Clues to help you find the exit phrase
+- Interactive map of the dungeon
+
+## Requirements
+
+- Python 3.8 or higher
+
+## Installation
+
+To install the Dungeon Game, follow these steps:
+
+1. Clone the repository:
+    ```sh
+    git clone https://github.com/Labrosh/Project1.git
+    ```
+2. Navigate to the project directory:
+    ```sh
+    cd Project1
+    ```
+3. Install the required dependencies:
+    ```sh
+    pip install -r requirements.txt
+    ```
+
+## Usage
+
+To start the game, run the following command:
+```sh
 python main.py
 ```
 
-## Debug Mode
-To enable debug mode and print detailed information about the dungeon, type the following command during gameplay:
-```
-enable_debug
-```
+### Commands
 
-This will print room exits and key placements to help you debug and understand the dungeon layout.
+- `look`: Describe the current room
+- `inventory` or `inv`: Show your inventory
+- `north` or `n`, `south` or `s`, `east` or `e`, `west` or `w`: Move in the specified direction
+- `pick [item name]`: Pick up an item
+- `examine`: Examine items in your inventory
+- `map`: Show the dungeon map
+- `quit`, `q`, or `exit`: Quit the game
 
-## Files
-- `main.py`: Entry point of the application.
-- `game.py`: Contains the `Game` class which handles the main game logic.
-- `player.py`: Contains the `Player` class which represents the player.
-- `room.py`: Contains the `Room` class which represents a room in the dungeon.
-- `item.py`: Contains the `Item` class and the `items` dictionary.
-- `dungeon.py`: Contains the `Dungeon` class which generates the dungeon.
-- `debug.py`: Contains debug functions for printing detailed information about the dungeon.
-- `names.py`: Contains name generation functions and lists of names.
-- `requirements.txt`: Lists the required Python packages.
-- `__init__.py`: Marks the directory as a package.
+## Gameplay
+
+In Dungeon Game, you will navigate through a series of rooms in a dungeon. Each room may contain items, clues, and locked doors. Your objective is to find the exit by collecting keys and solving clues. Use the commands to interact with the game and explore the dungeon.
+
+## Contributing
+
+Contributions are welcome! If you have any suggestions or improvements, please create an issue or submit a pull request.
 
 ## License
-This project is licensed under the MIT License.
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
