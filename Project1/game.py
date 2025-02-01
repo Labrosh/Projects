@@ -1,5 +1,8 @@
 import sys
 import random
+from player import Player
+from room import Room
+from item import Item
 
 class Game:
     def __init__(self, player, rooms):
@@ -197,107 +200,3 @@ class Game:
             action = self.player_action()
             command, argument = self.parse_action(action)
             self.handle_command(command, argument)
-
-
-class Player:
-    def __init__(self, starting_room):
-        self.location = starting_room
-        self.inventory = []
-
-    def add_to_inventory(self, item):
-        self.inventory.append(item)
-
-    def show_inventory(self):
-        if not self.inventory:
-            print("Your inventory is empty.")
-        else:
-            print("You have the following items:")
-            for item in self.inventory:
-                print(f"- {item.name}")
-
-
-class Room:
-    def __init__(self, description, items=None, exits=None, key=None):
-        self.description = description
-        self.items = items if items else []
-        self.exits = exits if exits else {}
-        self.key = key
-
-    def describe(self):
-        message = self.description
-        if self.items:
-            message += "\n\nYou see the following items:\n" + "\n".join(f"- {item.name}" for item in self.items)
-        return message
-
-    def is_locked(self, player_inventory):
-        return self.key and not any(item.name == self.key for item in player_inventory)
-    
-    def find_item_by_name(self, item_name):
-        for item in self.items:
-            if item.name == item_name:
-                return item
-        return None
-
-
-class Item:
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
-
-    def describe(self):
-        print(f"{self.name}: {self.description}")
-
-
-# making a new dungeon class to make randomized dungeons!
-
-class Dungeon: # this class will generate a random dungeon with a random number of rooms
-    def __init__(self, size = 5):
-        self.size = size
-        self.rooms = {}
-    def generate_rooms(self): 
-        for i in range(self.size):
-            room_name = f"Room {i + 1}"
-            description = f"You are in {room_name}." # this is a placeholder description
-            self.rooms[room_name] = Room(description=description, items=[], exits={}, key=None)
-        room_names = list(self.rooms.keys())
-
-        # I was told to try linear connections first
-        for i in range(len(room_names) - 1):
-            self.rooms[room_names[i]].exits["east"] = room_names[i + 1] # this will connect the rooms in a linear fashion
-            self.rooms[room_names[i + 1]].exits["west"] = room_names[i]
-        
-        # Debug print
-        for room in self.rooms.values():
-            print(f"{room.description} has exits: {room.exits}")
-    
-    def get_starting_room(self):
-        return list(self.rooms.keys())[0] # huh, I...don't know what this code does < AI suggested this code
-        
-items = {
-    "slimy key": Item(
-        name="slimy key",
-        description="A slimy key that smells of old fish. You found this in the south room."
-    ),
-    "stone key": Item(
-        name="stone key",
-        description="A heavy key made of stone. You found this in the north room."
-    ),
-    "shiny key": Item(
-        name="shiny key",
-        description="A shiny key that sparkles in the light. You found this in the east room."
-    ),
-    "ancient key": Item(
-        name="ancient key",
-        description="An ancient key that looks like it's been around for centuries. You found this in the west room. It seems to be bigger than the other keys you've found."
-    )
-}
-
-
-dungeon = Dungeon(size=5)
-dungeon.generate_rooms()
-rooms = dungeon.rooms
-
-starting_room = dungeon.get_starting_room()
-player = Player(starting_room)
-game = Game(player, rooms)
-game.game_loop()
