@@ -45,6 +45,16 @@ class Dungeon:
                 room_name = f"Room {row}-{col}"
                 self.connect_room(room_name, row, col)
 
+        # Connect the extra exit room to the grid
+        if self.extra_exit_row:
+            exit_room = f"Room {self.grid_size}-{self.grid_size//2}"
+            grid_room = f"Room {self.grid_size-1}-{self.grid_size//2}"
+            self.add_exit(exit_room, grid_room, "north", "south")
+        else:
+            exit_room = f"Room {self.grid_size//2}-{self.grid_size}"
+            grid_room = f"Room {self.grid_size//2}-{self.grid_size-1}"
+            self.add_exit(exit_room, grid_room, "west", "east")
+
     def connect_room(self, room_name, row, col):
         """Connects a single room to its neighbors."""
         if row > 0 and random.choice([True, False]):

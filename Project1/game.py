@@ -1,5 +1,6 @@
 import sys
 import random
+import matplotlib.pyplot as plt  # Add import for matplotlib
 from player import Player
 from room import Room
 from item import Item
@@ -29,6 +30,7 @@ class Game:
             "help": self.show_help,
             "look": self.room_desc,
             "pick": self.pick_up,
+            "map": self.show_map,  # Add map command
         }
 
     def handle_command(self, command, argument=None):
@@ -205,6 +207,37 @@ class Game:
     def debug(self):
         debug_message = f"Location: {self.player.location}\nInventory: {', '.join(item.name for item in self.player.inventory)}"
         self.print_block(debug_message)
+
+    def show_map(self):
+        """Displays a graphical map of the dungeon using matplotlib."""
+        grid_size = self.dungeon.grid_size
+        extra_row = 1 if self.dungeon.extra_exit_row else 0
+        extra_col = 1 if not self.dungeon.extra_exit_row else 0
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        for room_name, room in self.dungeon.rooms.items():
+            row, col = map(int, room_name.replace("Room ", "").split("-"))
+            
+            # Plot the room as a circle
+            ax.scatter(col, -row, c="gray", s=500, edgecolors="black")  # Room node
+            ax.text(col, -row, "X" if room_name == self.player.location else "E" if room_name == self.dungeon.exit_room else " ", 
+                    ha='center', va='center', fontsize=12, color="white", fontweight="bold")
+
+            # Draw paths between connected rooms
+            for direction, exit_data in room.exits.items():
+                exit_row, exit_col = map(int, exit_data["room"].replace("Room ", "").split("-"))
+                ax.plot([col, exit_col], [-row, -exit_row], 'k-', linewidth=2)  # Path between rooms
+
+        # Configure the plot for display
+        ax.set_xticks(range(grid_size + extra_col))
+        ax.set_yticks(range(-(grid_size + extra_row), 1))
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_xlim(-0.5, grid_size + extra_col - 0.5)
+        ax.set_ylim(-(grid_size + extra_row) + 0.5, 0.5)
+        ax.grid(True)
+        plt.title("Dungeon Map")
+        plt.show()
 
     def game_loop(self):
         self.intro()
