@@ -13,7 +13,13 @@ ROOM_NAMES = [
     "The Shadowed Library", "The Cursed Chamber", "Whispering Hollow",
     "The Forgotten Vault", "The Ancient Shrine", "The Silent Crypt",
     "The Eldritch Gateway", "The Sunken Ruins", "The Obsidian Sanctum",
-    "The Forsaken Altar", "The Crumbling Keep", "The Haunted Mausoleum"
+    "The Forsaken Altar", "The Crumbling Keep", "The Haunted Mausoleum",
+    "The Mystic Cavern", "The Enchanted Forest", "The Hidden Grotto",
+    "The Abandoned Mine", "The Crystal Cave", "The Dark Abyss",
+    "The Fiery Pit", "The Frozen Tundra", "The Golden Hall",
+    "The Iron Fortress", "The Jade Temple", "The Lost City",
+    "The Mystic Tower", "The Obsidian Fortress", "The Phantom Ship",
+    "The Sacred Grove", "The Silver Spire", "The Sunken Temple"
 ]
 
 # Key description prefixes
@@ -60,10 +66,12 @@ def generate_room_name():
     available_names = set(ROOM_NAMES) - used_room_names
     if available_names:
         room_name = random.choice(list(available_names))
+        used_room_names.add(room_name)
+        return room_name
     else:
         room_name = f"Generated Room {len(used_room_names) + 1}"
-    used_room_names.add(room_name)
-    return room_name
+        used_room_names.add(room_name)
+        return room_name
 
 def generate_key_name(room_name):
     """Creates a unique key name based on the room it unlocks, ensuring uniqueness."""

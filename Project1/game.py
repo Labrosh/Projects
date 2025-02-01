@@ -196,7 +196,7 @@ class Game:
         """Enable debug mode and print detailed information about the dungeon."""
         self.debug_mode = True
         self.print_block("Debug mode enabled.")
-        debug_dungeon(self.dungeon)
+        debug_dungeon(self.dungeon, self.player)
 
     def show_map(self):
         """Displays a graphical map of the dungeon using matplotlib."""

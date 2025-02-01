@@ -9,6 +9,7 @@ class Dungeon:
         self.grid_size = size
         self.rooms = {}
         self.extra_exit_row = True  # Set to False for an extra column instead
+        self.keys_to_place = {}  # Track keys that need to be placed
 
     def generate_rooms(self):
         """Generate a structured dungeon layout."""
@@ -103,16 +104,22 @@ class Dungeon:
                         key_name = generate_key_name(room_name)
                         exit_data["locked"] = True
                         exit_data["key"] = key_name
-                        self.place_key_in_reachable_room(key_name, start_room)
+                        self.keys_to_place[exit_data["room"]] = key_name
 
-    def place_key_in_reachable_room(self, key_name, start_room):
-        """Places a key in a reachable room."""
+        self.place_keys_in_reachable_rooms(start_room)
+
+    def place_keys_in_reachable_rooms(self, start_room):
+        """Places all keys in reachable rooms."""
         reachable_rooms = self.get_reachable_rooms(start_room)
         valid_rooms = [r for r in reachable_rooms if not any(item.name.startswith("key to") for item in r.items)]
         
-        if valid_rooms:
-            chosen_room = random.choice(valid_rooms)
-            chosen_room.items.append(Item(name=key_name, description=f"A mysterious key labeled '{key_name}'"))
+        # Shuffle the valid rooms to ensure more even distribution
+        random.shuffle(valid_rooms)
+        
+        for room, key_name in self.keys_to_place.items():
+            if valid_rooms:
+                chosen_room = valid_rooms.pop(0)  # Take the first room from the shuffled list
+                chosen_room.items.append(Item(name=key_name, description=f"A mysterious key labeled '{key_name}'"))
 
     def get_reachable_rooms(self, start_room):
         """Returns a list of rooms reachable from the given starting room."""
