@@ -1,6 +1,10 @@
+from names import generate_room_name, generate_key_name  # Import name generation functions
+
 class Room:
-    def __init__(self, description, items=None, exits=None, key=None):
+    def __init__(self, description, x=None, y=None, items=None, exits=None, key=None):
         self.description = description
+        self.x = x  # Add x-coordinate
+        self.y = y  # Add y-coordinate
         self.items = items if items else []
         self.exits = exits if exits else {}
         self.key = key
