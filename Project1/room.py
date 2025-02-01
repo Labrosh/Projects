@@ -1,4 +1,5 @@
 from names import generate_room_name, generate_key_name  # Import name generation functions
+from item import Item  # Import Item class
 
 class Room:
     def __init__(self, description, x=None, y=None, items=None, exits=None, key=None):

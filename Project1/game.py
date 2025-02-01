@@ -17,7 +17,7 @@ from player import Player
 from room import Room
 from item import Item
 from debug import debug_dungeon  # Import the debug function
-from names import prompts  # Import prompts from names.py
+from names import prompts, generate_exit_phrase  # Import prompts and generate_exit_phrase from names.py
 
 class Game:
     def __init__(self, player, rooms, dungeon):  # Add dungeon parameter

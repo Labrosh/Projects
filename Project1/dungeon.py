@@ -19,7 +19,7 @@ class Dungeon:
         self.ensure_connectivity()  # Ensure all rooms are reachable
         self.place_exit()
         self.lock_doors_and_place_keys()
-        self.generate_exit_phrase()  # Generate the exit phrase
+        self.exit_phrase = generate_exit_phrase(self.grid_size)  # Generate the exit phrase
         self.scatter_clues()  # Scatter clues in random rooms
 
     def create_grid(self):
@@ -142,10 +142,6 @@ class Dungeon:
             if valid_rooms:
                 chosen_room = valid_rooms.pop(0)  # Take the first room from the shuffled list
                 chosen_room.items.append(Item(name=key_name, description=f"A mysterious key labeled '{key_name}'"))
-
-    def generate_exit_phrase(self):
-        """Generates and stores the exit phrase."""
-        self.exit_phrase = generate_exit_phrase(self.grid_size)
 
     def scatter_clues(self):
         """Scatters clues for the exit phrase in random rooms."""
