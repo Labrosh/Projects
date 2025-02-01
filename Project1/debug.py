@@ -70,6 +70,21 @@ def print_room_descriptions(rooms):
         print(f"{room_name}: {room.description}")
     print("===================")
 
+def print_exit_phrase(dungeon):
+    """Print the exit phrase for debugging purposes."""
+    print("\n=== Exit Phrase ===")
+    print(f"Exit Phrase: {dungeon.exit_phrase}")
+    print("===================")
+
+def print_clues(dungeon):
+    """Print the scattered clues for the exit phrase."""
+    print("\n=== Clues ===")
+    for room_name, room in dungeon.rooms.items():
+        clue_list = [item.name for item in room.items if item.name.startswith("clue:")]
+        if clue_list:
+            print(f"{room_name} contains clues: {', '.join(clue_list)}")
+    print("===================")
+
 def debug_dungeon(dungeon, player):
     """Run all debug functions for the dungeon and player."""
     print_room_exits(dungeon.rooms)
@@ -80,3 +95,5 @@ def debug_dungeon(dungeon, player):
     check_key_distribution(dungeon)
     list_locked_doors(dungeon)
     print_room_descriptions(dungeon.rooms)
+    print_exit_phrase(dungeon)
+    print_clues(dungeon)

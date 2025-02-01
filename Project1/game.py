@@ -132,10 +132,19 @@ class Game:
             self.room_desc()
 
             if self.player.location == self.dungeon.exit_room:  # Check if the player is in the exit room
-                self.print_block("Congratulations! You have escaped the dungeon!")
-                sys.exit()  # Ends the game
+                self.prompt_exit_phrase()
         else:
             self.print_block("You can't go that way.")
+
+    def prompt_exit_phrase(self):
+        """Prompt the player for the exit phrase to escape the dungeon."""
+        self.print_block("You have reached the exit room. To escape, you must enter the correct exit phrase.")
+        entered_phrase = input("Enter the exit phrase: ").strip().lower()
+        if entered_phrase == self.dungeon.exit_phrase.lower():
+            self.print_block("Congratulations! You have escaped the dungeon!")
+            sys.exit()  # Ends the game
+        else:
+            self.print_block("Incorrect phrase. You are still trapped in the dungeon.")
 
     def show_inventory(self):
         self.player.show_inventory()

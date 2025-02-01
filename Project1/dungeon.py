@@ -2,7 +2,7 @@ import random
 from room import Room
 from item import Item
 from debug import debug_dungeon  # Import debug function
-from names import ROOM_NAMES, generate_room_name, generate_key_name  # Import room names and functions from names.py
+from names import ROOM_NAMES, generate_room_name, generate_key_name, generate_exit_phrase  # Import name generation functions
 
 class Dungeon:
     def __init__(self, size=3):  # Default to 3x3 but expandable
@@ -10,6 +10,7 @@ class Dungeon:
         self.rooms = {}
         self.extra_exit_row = True  # Set to False for an extra column instead
         self.keys_to_place = {}  # Track keys that need to be placed
+        self.exit_phrase = ""  # Store the exit phrase
 
     def generate_rooms(self):
         """Generate a structured dungeon layout."""
@@ -18,6 +19,8 @@ class Dungeon:
         self.ensure_full_connectivity()
         self.place_exit()
         self.lock_doors_and_place_keys()
+        self.generate_exit_phrase()  # Generate the exit phrase
+        self.scatter_clues()  # Scatter clues in random rooms
 
     def create_grid(self):
         """Creates a grid of rooms, with an extra exit room outside the grid."""
@@ -120,6 +123,25 @@ class Dungeon:
             if valid_rooms:
                 chosen_room = valid_rooms.pop(0)  # Take the first room from the shuffled list
                 chosen_room.items.append(Item(name=key_name, description=f"A mysterious key labeled '{key_name}'"))
+
+    def generate_exit_phrase(self):
+        """Generates and stores the exit phrase."""
+        self.exit_phrase = generate_exit_phrase(self.grid_size)
+
+    def scatter_clues(self):
+        """Scatters clues for the exit phrase in random rooms."""
+        phrase_words = self.exit_phrase.split()
+        reachable_rooms = self.get_reachable_rooms(self.get_starting_room())
+        valid_rooms = [r for r in reachable_rooms if r != self.exit_room]  # Exclude the exit room
+
+        # Shuffle the valid rooms to ensure more even distribution
+        random.shuffle(valid_rooms)
+
+        for word in phrase_words:
+            if valid_rooms:
+                chosen_room = valid_rooms.pop(0)  # Take the first room from the shuffled list
+                clue_item = Item(name=f"clue: {word}", description=f"A clue with the word '{word}'")
+                chosen_room.items.append(clue_item)
 
     def get_reachable_rooms(self, start_room):
         """Returns a list of rooms reachable from the given starting room."""

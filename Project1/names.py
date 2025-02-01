@@ -58,6 +58,30 @@ prompts = [
     "You're not very creative. What's your next move? ",
 ]
 
+# List of pre-written exit phrases (all exactly 5 words long)
+EXIT_PHRASES = [
+    "Shadows whisper beyond the abyss",
+    "Moonlight fades through silent veils",
+    "Ancient fires burn deep within",
+    "Lost echoes call for release",
+    "Storm winds howl beyond voids",
+    "Crimson flames dance beneath stars",
+    "Frozen echoes shatter silver mists",
+    "Forgotten paths lead to freedom",
+    "Eternal twilight lingers within ruins",
+    "Cursed whispers guide the way",
+    "Darkness falls upon the crypt",
+    "Mystic lights flicker in shadows",
+    "Haunted spirits roam the halls",
+    "Silent screams echo through time",
+    "Hidden secrets lie in wait",
+    "Ancient guardians watch the gate",
+    "Eerie silence fills the air",
+    "Ghostly figures drift through walls",
+    "Twisted roots choke the path",
+    "Winds of fate blow cold",
+]
+
 used_room_names = set()
 used_key_names = set()
 
@@ -80,3 +104,25 @@ def generate_key_name(room_name):
         if key_name not in used_key_names:
             used_key_names.add(key_name)
             return key_name
+
+def generate_exit_phrase(dungeon_size):
+    """Selects a structured 5-word phrase and trims it intelligently based on dungeon size."""
+    phrase = random.choice(EXIT_PHRASES)  # Pick a full logical sentence
+    words = phrase.split()  # Always a 5-word phrase
+
+    # Ensure phrase length stays within 3 to 5 words
+    phrase_length = max(3, min(5, dungeon_size))
+
+    # If reducing to 4 words, drop the 2nd word ("X the Y Z W" -> "X Y Z W")
+    if phrase_length == 4:
+        trimmed_words = [words[0], words[2], words[3], words[4]]
+    
+    # If reducing to 3 words, drop the 2nd and 4th words ("X the Y in Z" -> "X Y Z")
+    elif phrase_length == 3:
+        trimmed_words = [words[0], words[2], words[4]]
+
+    # Otherwise, use the full phrase
+    else:
+        trimmed_words = words
+
+    return " ".join(trimmed_words)  # Return formatted phrase
