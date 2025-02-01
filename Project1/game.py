@@ -16,6 +16,7 @@ from player import Player
 from room import Room
 from item import Item
 from debug import debug_dungeon  # Import the debug function
+from names import prompts  # Import prompts from names.py
 
 class Game:
     def __init__(self, player, rooms, dungeon):  # Add dungeon parameter
@@ -71,37 +72,6 @@ class Game:
         self.print_block(f"{location_header}\n\n{room_description}")
 
     def get_prompt(self):
-        prompts = [
-            "What do you want to do? ",
-            "What's next? ",
-            "What's your next move? ",
-            "What's the plan? ",
-            "What's the next step? ",
-            "The darkness is closing in. What now? ",
-            "The walls are closing in. What do you do? ",
-            "The shadows are moving. What's your move? ",
-            "The silence is deafening. What's next? ",
-            "The air is thick with anticipation. What's your next move? ",
-            "You feel a chill run down your spine. What do you do? ",
-            "You hear a faint whisper. What's your next move? ",
-            "You feel a presence watching you. What's your next move? ",
-            "You feel a sense of dread. What do you do? ",
-            "You feel a sense of foreboding. What's your next move? ",
-            "You feel a sense of unease. What do you do? ",
-            "Something smells foul. What's your next move? ",
-            "You hear a faint rustling. What's your next move? ",
-            "You hear a faint creaking. What do you do? ",
-            "Nice one, adventurer, but what's next? ",
-            "Ah...this again. What's your next move? ",
-            "Couldn't think of anything better? What's your next move? ",
-            "Bored yet? What's your next move? ",
-            "I'm getting tired of this. What's your next move? ",
-            "I could have guessed that. What's your next move? ",
-            "I'm not impressed. What's your next move? ",
-            "I'm not amused. What's your next move? ",
-            "*Yawn* What's your next move? ",
-            "You're not very creative. What's your next move? ",
-        ]
         available_prompts = [p for p in prompts if p not in self.recent_prompts]
 
         if not available_prompts:
@@ -259,9 +229,7 @@ class Game:
         plt.title("Dungeon Map")
 
         if interactive_backend:
-            plt.draw()
-            plt.pause(1)  # Shows for 1 second
-            plt.close()  # Closes automatically
+            plt.show()  # Keep the map open until the player closes it
         else:
             plt.savefig("dungeon_map.png")
             print("Dungeon map saved as dungeon_map.png")
