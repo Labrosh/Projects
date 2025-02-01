@@ -1,8 +1,8 @@
-from names import item_names  # Import item names from names.py
+from names import item_names
 
 class Item:
     def __init__(self, name, description):
-        self.name = name.lower()  # Store item names in lowercase
+        self.name = name.lower()
         self.description = description
 
     def describe(self):

@@ -1,31 +1,30 @@
 import sys
 import random
 import matplotlib
-import networkx as nx  # Import networkx
+import networkx as nx
 
-# Try to use the TkAgg backend, fallback to Agg if it fails
 try:
     import tkinter
-    matplotlib.use("TkAgg")  # Use the Tkinter backend for interactive plotting
+    matplotlib.use("TkAgg")
     interactive_backend = True
 except ImportError:
-    matplotlib.use("Agg")  # Use the Agg backend for non-interactive plotting
+    matplotlib.use("Agg")
     interactive_backend = False
 
-import matplotlib.pyplot as plt  # Add import for matplotlib
+import matplotlib.pyplot as plt
 from player import Player
 from room import Room
 from item import Item
-from debug import debug_dungeon  # Import the debug function
-from names import prompts, generate_exit_phrase  # Import prompts and generate_exit_phrase from names.py
+from debug import debug_dungeon
+from names import prompts, generate_exit_phrase
 
 class Game:
-    def __init__(self, player, rooms, dungeon):  # Add dungeon parameter
+    def __init__(self, player, rooms, dungeon):
         self.player = player
         self.rooms = rooms
-        self.dungeon = dungeon  # Store the dungeon reference
+        self.dungeon = dungeon
         self.recent_prompts = []
-        self.debug_mode = False  # Add a flag for debug mode
+        self.debug_mode = False
         self.commands = self.initialize_commands()
 
     def initialize_commands(self):
@@ -48,8 +47,8 @@ class Game:
             "help": self.show_help,
             "look": self.room_desc,
             "pick": self.pick_up,
-            "map": self.show_map,  # Add map command
-            "enable_debug": self.enable_debug,  # Add command to enable debug mode
+            "map": self.show_map,
+            "enable_debug": self.enable_debug,
         }
 
     def handle_command(self, command, argument=None):
@@ -119,34 +118,33 @@ class Game:
         current_room = self.rooms[self.player.location]
 
         if direction in current_room.exits:
-            exit_data = current_room.exits[direction]  # Get the exit dictionary
+            exit_data = current_room.exits[direction]
             next_room_coords = exit_data["room"]
 
-            if exit_data["locked"]:  # If the door is locked
-                required_key = exit_data["key"].lower()  # Ensure key comparison is case-insensitive
-                if any(item.name == required_key for item in self.player.inventory):  # Check if player has the key
+            if exit_data["locked"]:
+                required_key = exit_data["key"].lower()
+                if any(item.name == required_key for item in self.player.inventory):
                     self.print_block(f"You use the {required_key} to unlock the door.")
-                    exit_data["locked"] = False  # Unlock the door permanently
+                    exit_data["locked"] = False
                 else:
                     self.print_block(f"The door is locked. You need the {exit_data['key']} to open it.")
-                    return  # Stop movement
+                    return
 
             self.player.location = next_room_coords
             self.print_block(f"You move {direction}.")
             self.room_desc()
 
-            if self.player.location == (self.dungeon.exit_room.x, self.dungeon.exit_room.y):  # Check if the player is in the exit room
+            if self.player.location == (self.dungeon.exit_room.x, self.dungeon.exit_room.y):
                 self.prompt_exit_phrase()
         else:
             self.print_block("You can't go that way.")
 
     def prompt_exit_phrase(self):
-        """Prompt the player for the exit phrase to escape the dungeon."""
         self.print_block("You have reached the exit room. To escape, you must enter the correct exit phrase.")
         entered_phrase = input("Enter the exit phrase: ").strip().lower()
         if entered_phrase == self.dungeon.exit_phrase.lower():
             self.print_block("Congratulations! You have escaped the dungeon!")
-            sys.exit()  # Ends the game
+            sys.exit()
         else:
             self.print_block("Incorrect phrase. You are still trapped in the dungeon.")
 
@@ -156,7 +154,7 @@ class Game:
     def pick_up(self, item_name=None):
         current_room = self.rooms[self.player.location]
 
-        if not item_name:  # No item provided
+        if not item_name:
             self.print_block("What do you want to pick up? Please type the full name of the item.")
             return
 
@@ -206,49 +204,39 @@ class Game:
         self.print_block(debug_message)
 
     def enable_debug(self):
-        """Enable debug mode and print detailed information about the dungeon."""
         self.debug_mode = True
         self.print_block("Debug mode enabled.")
         debug_dungeon(self.dungeon, self.player)
 
     def show_map(self):
-        """Displays a graphical map of the dungeon using matplotlib and networkx."""
         grid_size = self.dungeon.grid_size
         G = nx.Graph()
 
-        # Add nodes for rooms
         for (row, col), room in self.dungeon.rooms.items():
-            G.add_node((row, col), pos=(col, -row))  # Use grid coordinates as node positions
+            G.add_node((row, col), pos=(col, -row))
 
-        # Add edges for room connections
         for (row, col), room in self.dungeon.rooms.items():
             for direction, exit_data in room.exits.items():
                 exit_row, exit_col = exit_data["room"]
-                if not G.has_edge((row, col), (exit_row, exit_col)):  # Avoid duplicate edges
+                if not G.has_edge((row, col), (exit_row, exit_col)):
                     G.add_edge((row, col), (exit_row, exit_col))
 
-        # Extract positions for the graph layout
         pos = nx.get_node_attributes(G, 'pos')
 
-        # Draw the graph
         plt.figure(figsize=(8, 8))
         nx.draw(G, pos, with_labels=False, node_size=800, node_color="gray", edgecolors="black", font_weight="bold")
 
-        # Highlight player position and exit
         nx.draw_networkx_nodes(G, pos, nodelist=[self.player.location], node_color="red", label="Player")
         nx.draw_networkx_nodes(G, pos, nodelist=[(self.dungeon.exit_room.x, self.dungeon.exit_room.y)], node_color="green", label="Exit")
 
-        # Add labels for player and exit
         for (row, col) in [self.player.location, (self.dungeon.exit_room.x, self.dungeon.exit_room.y)]:
             plt.text(col, -row, "P" if (row, col) == self.player.location else "E",
                      ha='center', va='center', fontsize=12, color="white", fontweight="bold")
 
-        # Configure the plot
         plt.title("Dungeon Map")
         plt.grid(True)
         plt.axis("off")
 
-        # Display or save the plot
         if interactive_backend:
             plt.show()
         else:

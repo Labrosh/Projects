@@ -1,5 +1,4 @@
 def print_room_exits(rooms):
-    """Print room exits to check if any are locked."""
     print("\n=== Room Exits ===")
     for room_coords, room in rooms.items():
         print(f"{room_coords}:")
@@ -10,7 +9,6 @@ def print_room_exits(rooms):
     print("===================")
 
 def print_key_placement(rooms):
-    """Print all rooms with placed keys."""
     print("\n=== Key Placement ===")
     for room_coords, room in rooms.items():
         key_list = [item.name for item in room.items if "key" in item.name]
@@ -19,7 +17,6 @@ def print_key_placement(rooms):
     print("===================")
 
 def print_room_items(rooms):
-    """Print all items in each room."""
     print("\n=== Room Items ===")
     for room_coords, room in rooms.items():
         item_list = [item.name for item in room.items]
@@ -28,7 +25,6 @@ def print_room_items(rooms):
     print("===================")
 
 def print_player_inventory(player):
-    """Print the player's inventory."""
     print("\n=== Player Inventory ===")
     if not player.inventory:
         print("The player's inventory is empty.")
@@ -38,7 +34,6 @@ def print_player_inventory(player):
     print("===================")
 
 def check_room_connectivity(dungeon):
-    """Check if all rooms are connected."""
     print("\n=== Room Connectivity ===")
     if dungeon.is_dungeon_fully_connected():
         print("All rooms are connected.")
@@ -47,7 +42,6 @@ def check_room_connectivity(dungeon):
     print("===================")
 
 def check_key_distribution(dungeon):
-    """Check if keys are evenly distributed."""
     print("\n=== Key Distribution ===")
     key_counts = {room_coords: len([item for item in room.items if "key" in item.name]) for room_coords, room in dungeon.rooms.items()}
     for room_coords, count in key_counts.items():
@@ -55,7 +49,6 @@ def check_key_distribution(dungeon):
     print("===================")
 
 def list_locked_doors(dungeon):
-    """List all locked doors and their corresponding keys."""
     print("\n=== Locked Doors ===")
     for room_coords, room in dungeon.rooms.items():
         for direction, exit_data in room.exits.items():
@@ -64,20 +57,17 @@ def list_locked_doors(dungeon):
     print("===================")
 
 def print_room_descriptions(rooms):
-    """Print descriptions of all rooms."""
     print("\n=== Room Descriptions ===")
     for room_coords, room in rooms.items():
         print(f"{room_coords}: {room.description}")
     print("===================")
 
 def print_exit_phrase(dungeon):
-    """Print the exit phrase for debugging purposes."""
     print("\n=== Exit Phrase ===")
     print(f"Exit Phrase: {dungeon.exit_phrase}")
     print("===================")
 
 def print_clues(dungeon):
-    """Print the scattered clues for the exit phrase."""
     print("\n=== Clues ===")
     for room_coords, room in dungeon.rooms.items():
         clue_list = [item.name for item in room.items if item.name.startswith("clue:")]
@@ -86,7 +76,6 @@ def print_clues(dungeon):
     print("===================")
 
 def debug_dungeon(dungeon, player):
-    """Run all debug functions for the dungeon and player."""
     print_room_exits(dungeon.rooms)
     print_key_placement(dungeon.rooms)
     print_room_items(dungeon.rooms)

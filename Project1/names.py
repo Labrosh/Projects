@@ -1,6 +1,5 @@
 import random
 
-# List of item names
 item_names = [
     "slimy key",
     "stone key",
@@ -8,7 +7,6 @@ item_names = [
     "ancient key"
 ]
 
-# List of possible room names
 ROOM_NAMES = [
     "The Shadowed Library", "The Cursed Chamber", "Whispering Hollow",
     "The Forgotten Vault", "The Ancient Shrine", "The Silent Crypt",
@@ -22,10 +20,8 @@ ROOM_NAMES = [
     "The Sacred Grove", "The Silver Spire", "The Sunken Temple"
 ]
 
-# Key description prefixes
 KEY_DESCRIPTIONS = ["Rusty", "Tarnished", "Bone-Carved", "Ancient", "Eldritch", "Silver", "Iron"]
 
-# List of prompts
 prompts = [
     "What do you want to do? ",
     "What's next? ",
@@ -58,7 +54,6 @@ prompts = [
     "You're not very creative. What's your next move? ",
 ]
 
-# List of pre-written exit phrases (all exactly 5 words long)
 EXIT_PHRASES = [
     "Shadows whisper beyond the abyss",
     "Moonlight fades through silent veils",
@@ -86,7 +81,6 @@ used_room_names = set()
 used_key_names = set()
 
 def generate_room_name():
-    """Returns a random thematic name for a dungeon room, ensuring uniqueness."""
     available_names = set(ROOM_NAMES) - used_room_names
     if available_names:
         room_name = random.choice(list(available_names))
@@ -98,7 +92,6 @@ def generate_room_name():
         return room_name
 
 def generate_key_name(room_name):
-    """Creates a unique key name based on the room it unlocks, ensuring uniqueness."""
     while True:
         key_name = f"{random.choice(KEY_DESCRIPTIONS)} Key to {room_name}"
         if key_name not in used_key_names:
@@ -106,23 +99,16 @@ def generate_key_name(room_name):
             return key_name
 
 def generate_exit_phrase(dungeon_size):
-    """Selects a structured 5-word phrase and trims it intelligently based on dungeon size."""
-    phrase = random.choice(EXIT_PHRASES)  # Pick a full logical sentence
-    words = phrase.split()  # Always a 5-word phrase
+    phrase = random.choice(EXIT_PHRASES)
+    words = phrase.split()
 
-    # Ensure phrase length stays within 3 to 5 words
     phrase_length = max(3, min(5, dungeon_size))
 
-    # If reducing to 4 words, drop the 2nd word ("X the Y Z W" -> "X Y Z W")
     if phrase_length == 4:
         trimmed_words = [words[0], words[2], words[3], words[4]]
-    
-    # If reducing to 3 words, drop the 2nd and 4th words ("X the Y in Z" -> "X Y Z")
     elif phrase_length == 3:
         trimmed_words = [words[0], words[2], words[4]]
-
-    # Otherwise, use the full phrase
     else:
         trimmed_words = words
 
-    return " ".join(trimmed_words)  # Return formatted phrase
+    return " ".join(trimmed_words)
