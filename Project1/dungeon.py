@@ -15,8 +15,8 @@ class Dungeon:
     def generate_rooms(self):
         """Generate a structured dungeon layout."""
         self.create_grid()
-        self.connect_rooms_randomly()
-        self.ensure_full_connectivity()
+        self.create_room_connections()  # Establish room connections
+        self.ensure_connectivity()  # Ensure all rooms are reachable
         self.place_exit()
         self.lock_doors_and_place_keys()
         self.generate_exit_phrase()  # Generate the exit phrase
@@ -28,60 +28,67 @@ class Dungeon:
             for col in range(self.grid_size):
                 room_name = generate_room_name()
                 description = f"You are in {room_name}."
-                self.rooms[f"Room {row}-{col}"] = Room(description=description, items=[], exits={}, key=None)
+                self.rooms[(row, col)] = Room(description=description, x=row, y=col, items=[], exits={}, key=None)
 
         self.add_extra_exit_room()
 
     def add_extra_exit_room(self):
         """Adds an extra exit room outside the grid."""
         if self.extra_exit_row:
-            exit_room = f"Room {self.grid_size}-{self.grid_size//2}"  # Middle of extra row
+            exit_room_coords = (self.grid_size, self.grid_size // 2)  # Middle of extra row
         else:
-            exit_room = f"Room {self.grid_size//2}-{self.grid_size}"  # Middle of extra column
+            exit_room_coords = (self.grid_size // 2, self.grid_size)  # Middle of extra column
 
-        self.rooms[exit_room] = Room(description="A mysterious chamber with an exit.", items=[], exits={}, key=None)
-        self.exit_room = exit_room
+        self.rooms[exit_room_coords] = Room(description="A mysterious chamber with an exit.", x=exit_room_coords[0], y=exit_room_coords[1], items=[], exits={}, key=None)
+        self.exit_room = self.rooms[exit_room_coords]
 
-    def connect_rooms_randomly(self):
-        """Randomly connects rooms with exits."""
-        for row in range(self.grid_size):
-            for col in range(self.grid_size):
-                room_name = f"Room {row}-{col}"
-                self.connect_room(room_name, row, col)
+    def create_room_connections(self):
+        """Establish valid connections between adjacent rooms, with optional skips for sparse connections."""
+        for x in range(self.grid_size):
+            for y in range(self.grid_size):
+                current_room = self.rooms[(x, y)]
 
-        # Connect the extra exit room to the grid
-        if self.extra_exit_row:
-            exit_room = f"Room {self.grid_size}-{self.grid_size//2}"
-            grid_room = f"Room {self.grid_size-1}-{self.grid_size//2}"
-            self.add_exit(exit_room, grid_room, "north", "south")
-        else:
-            exit_room = f"Room {self.grid_size//2}-{self.grid_size}"
-            grid_room = f"Room {self.grid_size//2}-{self.grid_size-1}"
-            self.add_exit(exit_room, grid_room, "west", "east")
+                # Randomly decide which valid connections to add
+                if (x > 0 and random.random() > 0.3):  # Connect west (70% chance)
+                    self.add_connection(current_room, self.rooms[(x - 1, y)], "west")
+                if (x < self.grid_size - 1 and random.random() > 0.3):  # Connect east
+                    self.add_connection(current_room, self.rooms[(x + 1, y)], "east")
+                if (y > 0 and random.random() > 0.3):  # Connect north
+                    self.add_connection(current_room, self.rooms[(x, y - 1)], "north")
+                if (y < self.grid_size - 1 and random.random() > 0.3):  # Connect south
+                    self.add_connection(current_room, self.rooms[(x, y + 1)], "south")
 
-    def connect_room(self, room_name, row, col):
-        """Connects a single room to its adjacent neighbors with some randomness."""
-        if row > 0 and random.choice([True, False]):  # Randomly decide to connect to the room above
-            self.add_exit(room_name, f"Room {row-1}-{col}", "north", "south")
-        if row < self.grid_size - 1 and random.choice([True, False]):  # Randomly decide to connect to the room below
-            self.add_exit(room_name, f"Room {row+1}-{col}", "south", "north")
-        if col > 0 and random.choice([True, False]):  # Randomly decide to connect to the room to the left
-            self.add_exit(room_name, f"Room {row}-{col-1}", "west", "east")
-        if col < self.grid_size - 1 and random.choice([True, False]):  # Randomly decide to connect to the room to the right
-            self.add_exit(room_name, f"Room {row}-{col+1}", "east", "west")
+    def add_connection(self, room_a, room_b, direction):
+        """Adds a bidirectional connection between two rooms."""
+        opposite_directions = {"north": "south", "south": "north", "east": "west", "west": "east"}
+        room_a.exits[direction] = {"room": room_b, "locked": False, "key": None}
+        room_b.exits[opposite_directions[direction]] = {"room": room_a, "locked": False, "key": None}
 
-    def add_exit(self, room_a, room_b, dir_a, dir_b):
-        """Adds a bidirectional exit between two rooms."""
-        self.rooms[room_a].exits[dir_a] = {"room": room_b, "locked": False, "key": None}
-        self.rooms[room_b].exits[dir_b] = {"room": room_a, "locked": False, "key": None}
+    def ensure_connectivity(self):
+        """Ensure all rooms are reachable by connecting isolated rooms."""
+        visited = set()
 
-    def ensure_full_connectivity(self):
-        """Ensures that all rooms are connected and accessible."""
-        while not self.is_dungeon_fully_connected():
-            room_a, room_b = random.sample(list(self.rooms.keys()), 2)
-            possible_directions = [("north", "south"), ("south", "north"), ("east", "west"), ("west", "east")]
-            dir_a, dir_b = random.choice(possible_directions)
-            self.add_exit(room_a, room_b, dir_a, dir_b)
+        def dfs(room):
+            if room in visited:
+                return
+            visited.add(room)
+            for direction, exit_data in room.exits.items():
+                neighbor = exit_data["room"]
+                dfs(neighbor)
+
+        # Start DFS from the first room
+        start_room = self.rooms[(0, 0)]
+        dfs(start_room)
+
+        # Add connections to any unvisited room
+        for room in self.rooms.values():
+            if room not in visited:
+                # Connect to the closest visited room
+                for direction, neighbor_coords in [("north", (0, -1)), ("south", (0, 1)), ("west", (-1, 0)), ("east", (1, 0))]:
+                    neighbor_coords = (room.x + neighbor_coords[0], room.y + neighbor_coords[1])
+                    if neighbor_coords in self.rooms and self.rooms[neighbor_coords] in visited:
+                        self.add_connection(room, self.rooms[neighbor_coords], direction)
+                        break
 
     def place_exit(self):
         """Places the exit in the extra room, ensuring a long enough path."""
@@ -89,9 +96,9 @@ class Dungeon:
         min_distance = self.grid_size  # Require at least grid_size steps
 
         while self.get_distance(start_room, self.exit_room) < min_distance or self.exit_room == start_room:
-            self.exit_room = random.choice(list(self.rooms.keys()))  # Re-randomize exit placement
+            self.exit_room = random.choice(list(self.rooms.values()))  # Re-randomize exit placement
 
-        self.rooms[self.exit_room].description += " This room contains the exit!"
+        self.exit_room.description += " This room contains the exit!"
 
     def lock_doors_and_place_keys(self):
         """Locks some doors and places keys in accessible rooms."""
@@ -101,7 +108,7 @@ class Dungeon:
         for room in reachable_rooms:
             for direction, exit_data in room.exits.items():
                 if random.random() < 0.25:  # 25% chance to lock a door
-                    room_description = self.rooms[exit_data["room"]].description
+                    room_description = exit_data["room"].description
                     if "You are in " in room_description:
                         room_name = room_description.split("You are in ")[1].strip(".")
                         key_name = generate_key_name(room_name)
@@ -152,13 +159,13 @@ class Dungeon:
         reachable_rooms = []
 
         while queue:
-            room_name = queue.popleft()
-            if room_name in visited:
+            room = queue.popleft()
+            if room in visited:
                 continue
-            visited.add(room_name)
-            reachable_rooms.append(self.rooms[room_name])
+            visited.add(room)
+            reachable_rooms.append(room)
 
-            for exit_data in self.rooms[room_name].exits.values():
+            for exit_data in room.exits.values():
                 if exit_data["room"] not in visited:
                     queue.append(exit_data["room"])
 
@@ -179,7 +186,7 @@ class Dungeon:
                 continue
             visited.add(room)
 
-            for exit_data in self.rooms[room].exits.values():
+            for exit_data in room.exits.values():
                 queue.append((exit_data["room"], distance + 1))
 
         return float("inf")  # If no path exists (shouldn't happen)
@@ -189,13 +196,13 @@ class Dungeon:
         visited = set()
         
         # Start from the first room
-        start_room = list(self.rooms.keys())[0]
+        start_room = list(self.rooms.values())[0]
         
-        def visit(room_name):
-            if room_name in visited:
+        def visit(room):
+            if room in visited:
                 return
-            visited.add(room_name)
-            for exit_data in self.rooms[room_name].exits.values():
+            visited.add(room)
+            for exit_data in room.exits.values():
                 visit(exit_data["room"])
 
         # Perform flood fill from the starting room
@@ -204,4 +211,4 @@ class Dungeon:
         return len(visited) == len(self.rooms)  # True if all rooms were visited
     
     def get_starting_room(self):
-        return list(self.rooms.keys())[0]
+        return self.rooms[(0, 0)]

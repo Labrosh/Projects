@@ -1,6 +1,6 @@
 class Player:
-    def __init__(self, starting_room):
-        self.location = starting_room
+    def __init__(self, starting_room_coords):
+        self.location = starting_room_coords  # Store location as coordinates
         self.inventory = []
 
     def add_to_inventory(self, item):

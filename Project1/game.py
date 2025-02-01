@@ -67,7 +67,7 @@ class Game:
 
     def room_desc(self):
         room = self.rooms[self.player.location]
-        location_header = f"Location: {self.player.location.upper()}"
+        location_header = f"Location: {self.player.location}"
         room_description = room.describe()
         self.print_block(f"{location_header}\n\n{room_description}")
 
@@ -116,7 +116,7 @@ class Game:
 
         if direction in current_room.exits:
             exit_data = current_room.exits[direction]  # Get the exit dictionary
-            next_room_name = exit_data["room"]
+            next_room = exit_data["room"]
 
             if exit_data["locked"]:  # If the door is locked
                 required_key = exit_data["key"].lower()  # Ensure key comparison is case-insensitive
@@ -127,11 +127,11 @@ class Game:
                     self.print_block(f"The door is locked. You need the {exit_data['key']} to open it.")
                     return  # Stop movement
 
-            self.player.location = next_room_name
+            self.player.location = (next_room.x, next_room.y)
             self.print_block(f"You move {direction}.")
             self.room_desc()
 
-            if self.player.location == self.dungeon.exit_room:  # Check if the player is in the exit room
+            if self.player.location == (self.dungeon.exit_room.x, self.dungeon.exit_room.y):  # Check if the player is in the exit room
                 self.prompt_exit_phrase()
         else:
             self.print_block("You can't go that way.")
@@ -212,20 +212,18 @@ class Game:
         grid_size = self.dungeon.grid_size
         fig, ax = plt.subplots(figsize=(5, 5))
 
-        for room_name, room in self.dungeon.rooms.items():
-            row, col = map(int, room_name.replace("Room ", "").split("-"))
-            
+        for (row, col), room in self.dungeon.rooms.items():
             # Plot the room as a circle
             ax.scatter(col, -row, c="gray", s=500, edgecolors="black")  # Room node
             ax.text(col, -row, 
-                    "X" if room_name == self.player.location else "E" if room_name == self.dungeon.exit_room else " ", 
+                    "X" if (row, col) == self.player.location else "E" if (row, col) == (self.dungeon.exit_room.x, self.dungeon.exit_room.y) else " ", 
                     ha='center', va='center', fontsize=12, 
-                    color="red" if room_name == self.player.location else "green" if room_name == self.dungeon.exit_room else "white", 
+                    color="red" if (row, col) == self.player.location else "green" if (row, col) == (self.dungeon.exit_room.x, self.dungeon.exit_room.y) else "white", 
                     fontweight="bold")
 
             # Draw paths between connected rooms
             for direction, exit_data in room.exits.items():
-                exit_row, exit_col = map(int, exit_data["room"].replace("Room ", "").split("-"))
+                exit_row, exit_col = exit_data["room"].x, exit_data["room"].y
                 ax.plot([col, exit_col], [-row, -exit_row], 'k-', linewidth=2)  # Path between rooms
 
         ax.set_xticks(range(grid_size))
