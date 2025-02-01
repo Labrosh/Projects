@@ -1,6 +1,7 @@
 import sys
 import random
 import matplotlib
+import networkx as nx  # Import networkx
 
 # Try to use the TkAgg backend, fallback to Agg if it fails
 try:
@@ -116,7 +117,7 @@ class Game:
 
         if direction in current_room.exits:
             exit_data = current_room.exits[direction]  # Get the exit dictionary
-            next_room = exit_data["room"]
+            next_room_coords = exit_data["room"]
 
             if exit_data["locked"]:  # If the door is locked
                 required_key = exit_data["key"].lower()  # Ensure key comparison is case-insensitive
@@ -127,7 +128,7 @@ class Game:
                     self.print_block(f"The door is locked. You need the {exit_data['key']} to open it.")
                     return  # Stop movement
 
-            self.player.location = (next_room.x, next_room.y)
+            self.player.location = next_room_coords
             self.print_block(f"You move {direction}.")
             self.room_desc()
 
@@ -208,38 +209,48 @@ class Game:
         debug_dungeon(self.dungeon, self.player)
 
     def show_map(self):
-        """Displays a graphical map of the dungeon using matplotlib."""
+        """Displays a graphical map of the dungeon using matplotlib and networkx."""
         grid_size = self.dungeon.grid_size
-        fig, ax = plt.subplots(figsize=(5, 5))
+        G = nx.Graph()
 
+        # Add nodes for rooms
         for (row, col), room in self.dungeon.rooms.items():
-            # Plot the room as a circle
-            ax.scatter(col, -row, c="gray", s=500, edgecolors="black")  # Room node
-            ax.text(col, -row, 
-                    "X" if (row, col) == self.player.location else "E" if (row, col) == (self.dungeon.exit_room.x, self.dungeon.exit_room.y) else " ", 
-                    ha='center', va='center', fontsize=12, 
-                    color="red" if (row, col) == self.player.location else "green" if (row, col) == (self.dungeon.exit_room.x, self.dungeon.exit_room.y) else "white", 
-                    fontweight="bold")
+            G.add_node((row, col), pos=(col, -row))  # Use grid coordinates as node positions
 
-            # Draw paths between connected rooms
+        # Add edges for room connections
+        for (row, col), room in self.dungeon.rooms.items():
             for direction, exit_data in room.exits.items():
-                exit_row, exit_col = exit_data["room"].x, exit_data["room"].y
-                ax.plot([col, exit_col], [-row, -exit_row], 'k-', linewidth=2)  # Path between rooms
+                exit_row, exit_col = exit_data["room"]
+                if not G.has_edge((row, col), (exit_row, exit_col)):  # Avoid duplicate edges
+                    G.add_edge((row, col), (exit_row, exit_col))
 
-        ax.set_xticks(range(grid_size))
-        ax.set_yticks(range(-grid_size, 1))
-        ax.set_xticklabels([])
-        ax.set_yticklabels([])
-        ax.set_xlim(-0.5, grid_size - 0.5)
-        ax.set_ylim(-grid_size + 0.5, 0.5)
-        ax.grid(True)
+        # Extract positions for the graph layout
+        pos = nx.get_node_attributes(G, 'pos')
+
+        # Draw the graph
+        plt.figure(figsize=(8, 8))
+        nx.draw(G, pos, with_labels=False, node_size=800, node_color="gray", edgecolors="black", font_weight="bold")
+
+        # Highlight player position and exit
+        nx.draw_networkx_nodes(G, pos, nodelist=[self.player.location], node_color="red", label="Player")
+        nx.draw_networkx_nodes(G, pos, nodelist=[(self.dungeon.exit_room.x, self.dungeon.exit_room.y)], node_color="green", label="Exit")
+
+        # Add labels for player and exit
+        for (row, col) in [self.player.location, (self.dungeon.exit_room.x, self.dungeon.exit_room.y)]:
+            plt.text(col, -row, "P" if (row, col) == self.player.location else "E",
+                     ha='center', va='center', fontsize=12, color="white", fontweight="bold")
+
+        # Configure the plot
         plt.title("Dungeon Map")
+        plt.grid(True)
+        plt.axis("off")
 
+        # Display or save the plot
         if interactive_backend:
-            plt.show()  # Keep the map open until the player closes it
+            plt.show()
         else:
-            plt.savefig("dungeon_map.png")
-            print("Dungeon map saved as dungeon_map.png")
+            plt.savefig("dungeon_map_networkx.png")
+            print("Dungeon map saved as dungeon_map_networkx.png")
 
     def game_loop(self):
         self.intro()
