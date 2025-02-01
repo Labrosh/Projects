@@ -34,29 +34,34 @@ class Dungeon:
 
     def add_extra_exit_room(self):
         """Adds an extra exit room outside the grid."""
-        if self.extra_exit_row:
-            exit_room_coords = (self.grid_size, self.grid_size // 2)  # Middle of extra row
-        else:
-            exit_room_coords = (self.grid_size // 2, self.grid_size)  # Middle of extra column
-
+        exit_room_coords = self.get_extra_exit_room_coords()
         self.rooms[exit_room_coords] = Room(description="A mysterious chamber with an exit.", x=exit_room_coords[0], y=exit_room_coords[1], items=[], exits={}, key=None)
         self.exit_room = self.rooms[exit_room_coords]
+
+    def get_extra_exit_room_coords(self):
+        """Returns the coordinates for the extra exit room."""
+        if self.extra_exit_row:
+            return (self.grid_size, self.grid_size // 2)  # Middle of extra row
+        else:
+            return (self.grid_size // 2, self.grid_size)  # Middle of extra column
 
     def create_room_connections(self):
         """Establish valid connections between adjacent rooms, with optional skips for sparse connections."""
         for x in range(self.grid_size):
             for y in range(self.grid_size):
                 current_room = self.rooms[(x, y)]
+                self.add_random_connections(current_room, x, y)
 
-                # Randomly decide which valid connections to add
-                if (x > 0 and random.random() > 0.3):  # Connect west (70% chance)
-                    self.add_connection(current_room, (x - 1, y), "west")
-                if (x < self.grid_size - 1 and random.random() > 0.3):  # Connect east
-                    self.add_connection(current_room, (x + 1, y), "east")
-                if (y > 0 and random.random() > 0.3):  # Connect north
-                    self.add_connection(current_room, (x, y - 1), "north")
-                if (y < self.grid_size - 1 and random.random() > 0.3):  # Connect south
-                    self.add_connection(current_room, (x, y + 1), "south")
+    def add_random_connections(self, current_room, x, y):
+        """Adds random connections to the current room."""
+        if (x > 0 and random.random() > 0.3):  # Connect west (70% chance)
+            self.add_connection(current_room, (x - 1, y), "west")
+        if (x < self.grid_size - 1 and random.random() > 0.3):  # Connect east
+            self.add_connection(current_room, (x + 1, y), "east")
+        if (y > 0 and random.random() > 0.3):  # Connect north
+            self.add_connection(current_room, (x, y - 1), "north")
+        if (y < self.grid_size - 1 and random.random() > 0.3):  # Connect south
+            self.add_connection(current_room, (x, y + 1), "south")
 
     def add_connection(self, room_a, room_b_coords, direction):
         """Adds a bidirectional connection between two rooms."""
@@ -83,12 +88,15 @@ class Dungeon:
         # Add connections to any unvisited room
         for room_coords in self.rooms.keys():
             if room_coords not in visited:
-                # Connect to the closest visited room
-                for direction, neighbor_offset in [("north", (0, -1)), ("south", (0, 1)), ("west", (-1, 0)), ("east", (1, 0))]:
-                    neighbor_coords = (room_coords[0] + neighbor_offset[0], room_coords[1] + neighbor_offset[1])
-                    if neighbor_coords in self.rooms and neighbor_coords in visited:
-                        self.add_connection(self.rooms[room_coords], neighbor_coords, direction)
-                        break
+                self.connect_to_closest_visited_room(room_coords, visited)
+
+    def connect_to_closest_visited_room(self, room_coords, visited):
+        """Connects the given room to the closest visited room."""
+        for direction, neighbor_offset in [("north", (0, -1)), ("south", (0, 1)), ("west", (-1, 0)), ("east", (1, 0))]:
+            neighbor_coords = (room_coords[0] + neighbor_offset[0], room_coords[1] + neighbor_offset[1])
+            if neighbor_coords in self.rooms and neighbor_coords in visited:
+                self.add_connection(self.rooms[room_coords], neighbor_coords, direction)
+                break
 
     def place_exit(self):
         """Places the exit in the extra room, ensuring a long enough path."""
@@ -106,17 +114,21 @@ class Dungeon:
         reachable_rooms = self.get_reachable_rooms(start_room_coords)
 
         for room in reachable_rooms:
-            for direction, exit_data in room.exits.items():
-                if random.random() < 0.25:  # 25% chance to lock a door
-                    room_description = self.rooms[exit_data["room"]].description
-                    if "You are in " in room_description:
-                        room_name = room_description.split("You are in ")[1].strip(".")
-                        key_name = generate_key_name(room_name)
-                        exit_data["locked"] = True
-                        exit_data["key"] = key_name
-                        self.keys_to_place[exit_data["room"]] = key_name
+            self.lock_random_doors(room)
 
         self.place_keys_in_reachable_rooms(start_room_coords)
+
+    def lock_random_doors(self, room):
+        """Locks random doors in the given room."""
+        for direction, exit_data in room.exits.items():
+            if random.random() < 0.25:  # 25% chance to lock a door
+                room_description = self.rooms[exit_data["room"]].description
+                if "You are in " in room_description:
+                    room_name = room_description.split("You are in ")[1].strip(".")
+                    key_name = generate_key_name(room_name)
+                    exit_data["locked"] = True
+                    exit_data["key"] = key_name
+                    self.keys_to_place[exit_data["room"]] = key_name
 
     def place_keys_in_reachable_rooms(self, start_room_coords):
         """Places all keys in reachable rooms."""
