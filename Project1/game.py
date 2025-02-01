@@ -1,10 +1,26 @@
 import sys
 import random
+import matplotlib
+
+# Try to use the TkAgg backend, fallback to Agg if it fails
+try:
+    import tkinter
+    matplotlib.use("TkAgg")  # Use the Tkinter backend for interactive plotting
+    interactive_backend = True
+except ImportError:
+    matplotlib.use("Agg")  # Use the Agg backend for non-interactive plotting
+    interactive_backend = False
+
+import matplotlib.pyplot as plt  # Add import for matplotlib
+from player import Player
+from room import Room
+from item import Item
 
 class Game:
-    def __init__(self, player, rooms):
+    def __init__(self, player, rooms, dungeon):  # Add dungeon parameter
         self.player = player
         self.rooms = rooms
+        self.dungeon = dungeon  # Store the dungeon reference
         self.recent_prompts = []
         self.commands = {
             "quit": self.quit_game,
@@ -25,6 +41,7 @@ class Game:
             "help": self.show_help,
             "look": self.room_desc,
             "pick": self.pick_up,
+            "map": self.show_map,  # Add map command
         }
 
     def handle_command(self, command, argument=None):
@@ -123,15 +140,27 @@ class Game:
 
     def move(self, direction):
         current_room = self.rooms[self.player.location]
+
         if direction in current_room.exits:
-            next_room_name = current_room.exits[direction]
-            next_room = self.rooms[next_room_name]
-            if next_room.is_locked(self.player.inventory):
-                self.print_block(f"You need the {next_room.key} to enter this room.")
-            else:
-                self.player.location = next_room_name
-                self.print_block(f"You move {direction}.")
-                self.room_desc()
+            exit_data = current_room.exits[direction]  # Get the exit dictionary
+            next_room_name = exit_data["room"]
+
+            if exit_data["locked"]:  # If the door is locked
+                required_key = exit_data["key"].lower()  # Ensure key comparison is case-insensitive
+                if any(item.name == required_key for item in self.player.inventory):  # Check if player has the key
+                    self.print_block(f"You use the {required_key} to unlock the door.")
+                    exit_data["locked"] = False  # Unlock the door permanently
+                else:
+                    self.print_block(f"The door is locked. You need the {exit_data['key']} to open it.")
+                    return  # Stop movement
+
+            self.player.location = next_room_name
+            self.print_block(f"You move {direction}.")
+            self.room_desc()
+
+            if self.player.location == self.dungeon.exit_room:  # Check if the player is in the exit room
+                self.print_block("Congratulations! You have escaped the dungeon!")
+                sys.exit()  # Ends the game
         else:
             self.print_block("You can't go that way.")
 
@@ -190,6 +219,44 @@ class Game:
         debug_message = f"Location: {self.player.location}\nInventory: {', '.join(item.name for item in self.player.inventory)}"
         self.print_block(debug_message)
 
+    def show_map(self):
+        """Displays a graphical map of the dungeon using matplotlib."""
+        grid_size = self.dungeon.grid_size
+        fig, ax = plt.subplots(figsize=(5, 5))
+
+        for room_name, room in self.dungeon.rooms.items():
+            row, col = map(int, room_name.replace("Room ", "").split("-"))
+            
+            # Plot the room as a circle
+            ax.scatter(col, -row, c="gray", s=500, edgecolors="black")  # Room node
+            ax.text(col, -row, 
+                    "X" if room_name == self.player.location else "E" if room_name == self.dungeon.exit_room else " ", 
+                    ha='center', va='center', fontsize=12, 
+                    color="red" if room_name == self.player.location else "green" if room_name == self.dungeon.exit_room else "white", 
+                    fontweight="bold")
+
+            # Draw paths between connected rooms
+            for direction, exit_data in room.exits.items():
+                exit_row, exit_col = map(int, exit_data["room"].replace("Room ", "").split("-"))
+                ax.plot([col, exit_col], [-row, -exit_row], 'k-', linewidth=2)  # Path between rooms
+
+        ax.set_xticks(range(grid_size))
+        ax.set_yticks(range(-grid_size, 1))
+        ax.set_xticklabels([])
+        ax.set_yticklabels([])
+        ax.set_xlim(-0.5, grid_size - 0.5)
+        ax.set_ylim(-grid_size + 0.5, 0.5)
+        ax.grid(True)
+        plt.title("Dungeon Map")
+
+        if interactive_backend:
+            plt.draw()
+            plt.pause(1)  # Shows for 1 second
+            plt.close()  # Closes automatically
+        else:
+            plt.savefig("dungeon_map.png")
+            print("Dungeon map saved as dungeon_map.png")
+
     def game_loop(self):
         self.intro()
         self.room_desc()
@@ -197,114 +264,3 @@ class Game:
             action = self.player_action()
             command, argument = self.parse_action(action)
             self.handle_command(command, argument)
-
-
-class Player:
-    def __init__(self):
-        self.location = "starting room"
-        self.inventory = []
-
-    def add_to_inventory(self, item):
-        self.inventory.append(item)
-
-    def show_inventory(self):
-        if not self.inventory:
-            print("Your inventory is empty.")
-        else:
-            print("You have the following items:")
-            for item in self.inventory:
-                print(f"- {item.name}")
-
-
-class Room:
-    def __init__(self, description, items=None, exits=None, key=None):
-        self.description = description
-        self.items = items if items else []
-        self.exits = exits if exits else {}
-        self.key = key
-
-    def describe(self):
-        message = self.description
-        if self.items:
-            message += "\n\nYou see the following items:\n" + "\n".join(f"- {item.name}" for item in self.items)
-        return message
-
-    def is_locked(self, player_inventory):
-        return self.key and not any(item.name == self.key for item in player_inventory)
-    
-    def find_item_by_name(self, item_name):
-        for item in self.items:
-            if item.name == item_name:
-                return item
-        return None
-
-
-class Item:
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
-
-    def describe(self):
-        print(f"{self.name}: {self.description}")
-
-
-items = {
-    "slimy key": Item(
-        name="slimy key",
-        description="A slimy key that smells of old fish. You found this in the south room."
-    ),
-    "stone key": Item(
-        name="stone key",
-        description="A heavy key made of stone. You found this in the north room."
-    ),
-    "shiny key": Item(
-        name="shiny key",
-        description="A shiny key that sparkles in the light. You found this in the east room."
-    ),
-    "ancient key": Item(
-        name="ancient key",
-        description="An ancient key that looks like it's been around for centuries. You found this in the west room. It seems to be bigger than the other keys you've found."
-    )
-}
-
-
-rooms = {
-    "starting room": Room(
-        description="You find yourself inside a blank square room. There is an exit to the north, south, east, and west.",
-        exits={"north": "north room", "south": "south room", "east": "east room", "west": "west room"},
-        items=[]
-    ),
-    "north room": Room(
-        description="You are in a room with stone walls. There is an exit to the south. You see a stone key on the ground.",
-        exits={"south": "starting room"},
-        items=[items["stone key"]]
-    ),
-    "south room": Room(
-        description="You are in a damp, dark room. There is an exit to the north. You see a slimy key on the ground.",
-        exits={"north": "starting room"},
-        items=[items["slimy key"]],
-        key="stone key"
-    ),
-    "east room": Room(
-        description="You are in a brightly lit room. There is an exit to the west. You see a shiny key on the ground.",
-        exits={"west": "starting room"},
-        items=[items["shiny key"]],
-        key="slimy key"
-    ),
-    "west room": Room(
-        description="You are in a room filled with ancient artifacts. There is an exit to the east, and to the west. You see an ancient key on the ground.",
-        exits={"east": "starting room", "west": "dungeon exit"},
-        items=[items["ancient key"]],
-        key="shiny key"
-    ),
-    "dungeon exit": Room(
-        description="You have found the exit to the dungeon. Congratulations!",
-        exits={"east": "west room"},
-        items=[],
-        key="ancient key"
-    )
-}
-
-
-game = Game(Player(), rooms)
-game.game_loop()
