@@ -1,3 +1,5 @@
+import logging
+
 class Player:
     def __init__(self, starting_room_coords):
         self.location = starting_room_coords  # Store location as coordinates
@@ -8,8 +10,8 @@ class Player:
 
     def show_inventory(self):
         if not self.inventory:
-            print("Your inventory is empty.")
+            logging.info("Your inventory is empty.")
         else:
-            print("You have the following items:")
+            logging.info("You have the following items:")
             for item in self.inventory:
-                print(f"- {item.name}")
+                logging.info(f"- {item.name}")

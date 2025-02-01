@@ -16,7 +16,7 @@ class Room:
         return message
 
     def is_locked(self, player_inventory):
-        return self.key and not any(item.name == self.key for item in player_inventory)
+        return self.key and not any(item.name.lower() == self.key.lower() for item in player_inventory)
     
     def find_item_by_name(self, item_name):
         for item in self.items:
