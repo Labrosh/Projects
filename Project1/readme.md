@@ -1,7 +1,7 @@
 # Project1
 
 ## Overview
-Project1 is a text-based dungeon game where players can explore rooms, pick up items, and navigate through a dungeon. The game features a graphical map display using `matplotlib`.
+Project1 is a text-based dungeon game where players can explore rooms, pick up items, and navigate through a dungeon. The game features a graphical map display using `matplotlib` and `networkx`.
 
 ## Setup
 1. Clone the repository.
@@ -11,10 +11,21 @@ Project1 is a text-based dungeon game where players can explore rooms, pick up i
 ## Dependencies
 The game requires the following Python packages:
 - `matplotlib`
+- `networkx`
+- `numpy`
+- `python-dateutil`
+- `pyparsing`
+- `pillow`
+- `packaging`
+- `fonttools`
+- `cycler`
+- `kiwisolver`
+- `six`
+- `contourpy`
 
 You can install the required packages using `pip`:
 ```bash
-pip install matplotlib
+pip install -r requirements.txt
 ```
 
 ### Optional: `tkinter`
@@ -56,6 +67,8 @@ This will print room exits and key placements to help you debug and understand t
 - `item.py`: Contains the `Item` class and the `items` dictionary.
 - `dungeon.py`: Contains the `Dungeon` class which generates the dungeon.
 - `debug.py`: Contains debug functions for printing detailed information about the dungeon.
+- `names.py`: Contains name generation functions and lists of names.
+- `requirements.txt`: Lists the required Python packages.
 - `__init__.py`: Marks the directory as a package.
 
 ## License
