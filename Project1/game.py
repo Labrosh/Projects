@@ -229,8 +229,11 @@ class Game:
             
             # Plot the room as a circle
             ax.scatter(col, -row, c="gray", s=500, edgecolors="black")  # Room node
-            ax.text(col, -row, "X" if room_name == self.player.location else "E" if room_name == self.dungeon.exit_room else " ", 
-                    ha='center', va='center', fontsize=12, color="white", fontweight="bold")
+            ax.text(col, -row, 
+                    "X" if room_name == self.player.location else "E" if room_name == self.dungeon.exit_room else " ", 
+                    ha='center', va='center', fontsize=12, 
+                    color="red" if room_name == self.player.location else "green" if room_name == self.dungeon.exit_room else "white", 
+                    fontweight="bold")
 
             # Draw paths between connected rooms
             for direction, exit_data in room.exits.items():
@@ -247,7 +250,9 @@ class Game:
         plt.title("Dungeon Map")
 
         if interactive_backend:
-            plt.show()
+            plt.draw()
+            plt.pause(1)  # Shows for 1 second
+            plt.close()  # Closes automatically
         else:
             plt.savefig("dungeon_map.png")
             print("Dungeon map saved as dungeon_map.png")

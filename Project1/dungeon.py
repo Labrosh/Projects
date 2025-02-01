@@ -3,10 +3,9 @@ from room import Room
 from item import Item  
 
 class Dungeon:
-    def __init__(self, size=5):
-        self.size = size
+    def __init__(self, size=3):  # Default to 3x3 but expandable
+        self.grid_size = size
         self.rooms = {}
-        self.grid_size = 3  # Changeable later!
         self.extra_exit_row = True  # Set to False for an extra column instead
 
     def generate_rooms(self):
