@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt  # Add import for matplotlib
 from player import Player
 from room import Room
 from item import Item
+from debug import debug_dungeon  # Import the debug function
 
 class Game:
     def __init__(self, player, rooms, dungeon):  # Add dungeon parameter
@@ -22,6 +23,7 @@ class Game:
         self.rooms = rooms
         self.dungeon = dungeon  # Store the dungeon reference
         self.recent_prompts = []
+        self.debug_mode = False  # Add a flag for debug mode
         self.commands = {
             "quit": self.quit_game,
             "q": self.quit_game,
@@ -42,6 +44,7 @@ class Game:
             "look": self.room_desc,
             "pick": self.pick_up,
             "map": self.show_map,  # Add map command
+            "enable_debug": self.enable_debug,  # Add command to enable debug mode
         }
 
     def handle_command(self, command, argument=None):
@@ -218,6 +221,12 @@ class Game:
     def debug(self):
         debug_message = f"Location: {self.player.location}\nInventory: {', '.join(item.name for item in self.player.inventory)}"
         self.print_block(debug_message)
+
+    def enable_debug(self):
+        """Enable debug mode and print detailed information about the dungeon."""
+        self.debug_mode = True
+        self.print_block("Debug mode enabled.")
+        debug_dungeon(self.dungeon)
 
     def show_map(self):
         """Displays a graphical map of the dungeon using matplotlib."""
