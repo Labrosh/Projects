@@ -4,6 +4,7 @@ import requests
 # Constants
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
 BASE_URL = "https://api.themoviedb.org/3"
+IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 TMDB_ATTRIBUTION = """
 Powered by TMDb
 This product uses the TMDb API but is not endorsed or certified by TMDb.
@@ -26,5 +27,9 @@ def search_movie(query):
     data = response.json()
     results = data.get("results", [])
 
-    return [f"{movie.get('title', 'Unknown Title')} ({movie.get('release_date', 'Unknown Release Date')})" 
-            for movie in results[:5]]  # Return top 5 results as a list
+    return [{
+        "id": movie.get('id'),
+        "title": movie.get('title', 'Unknown Title'),
+        "release_date": movie.get('release_date', 'Unknown Release Date'),
+        "poster_path": f"{IMAGE_BASE_URL}{movie.get('poster_path')}" if movie.get('poster_path') else None
+    } for movie in results[:5]]  # Return top 5 results as a list

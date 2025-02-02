@@ -1,5 +1,8 @@
 import tkinter as tk
 from tkinter import messagebox
+from PIL import Image, ImageTk
+import requests
+import os
 import json
 import movie_data  # Import movie functions
 import tmdb_api  # Import TMDb API functions
@@ -61,9 +64,9 @@ def run_gui():
         to_watch_listbox.delete(0, tk.END)
         watched_listbox.delete(0, tk.END)
         for movie in movie_data.movies_to_watch:
-            to_watch_listbox.insert(tk.END, movie)
+            to_watch_listbox.insert(tk.END, movie['title'])
         for movie in movie_data.movies_watched:
-            watched_listbox.insert(tk.END, movie)
+            watched_listbox.insert(tk.END, movie['title'])
 
     movie_data.load_data()  # Load from JSON
     load_movies()  # Display in GUI
@@ -78,7 +81,7 @@ def run_gui():
     def add_movie():
         movie = movie_entry.get().strip()
         if movie:
-            movie_data.movies_to_watch.append(movie)
+            movie_data.movies_to_watch.append({"title": movie, "release_date": "", "poster_path": "", "details": None})
             movie_data.save_data()
             load_movies()
             movie_entry.delete(0, tk.END)
@@ -115,18 +118,42 @@ def run_gui():
         result_listbox.pack(pady=ui_settings["element_spacing"])
 
         for movie in results:
-            result_listbox.insert(tk.END, movie)
+            result_listbox.insert(tk.END, f"{movie['title']} ({movie['release_date']})")
 
         def add_selected_movie():
             selected = result_listbox.curselection()
             if selected:
-                movie = result_listbox.get(selected[0])
-                movie_data.movies_to_watch.append(movie)
+                movie = results[selected[0]]
+                poster_path = movie_data.save_poster(movie)
+                details = movie_data.save_movie_details(movie)
+                movie_data.movies_to_watch.append({
+                    "id": movie['id'],
+                    "title": movie['title'],
+                    "release_date": movie['release_date'],
+                    "poster_path": poster_path or movie['poster_path'],
+                    "details": details
+                })
                 movie_data.save_data()
                 load_movies()
                 search_window.destroy()
             else:
                 messagebox.showwarning("Warning", "Please select a movie!")
+
+        def show_movie_poster(event):
+            selected = result_listbox.curselection()
+            if selected:
+                movie = results[selected[0]]
+                if movie['poster_path']:
+                    poster_window = tk.Toplevel(root)
+                    poster_window.title(movie['title'])
+                    poster_image = Image.open(requests.get(movie['poster_path'], stream=True).raw)
+                    poster_image = poster_image.resize((300, 450), Image.LANCZOS)
+                    poster_photo = ImageTk.PhotoImage(poster_image)
+                    poster_label = tk.Label(poster_window, image=poster_photo)
+                    poster_label.image = poster_photo
+                    poster_label.pack()
+
+        result_listbox.bind('<<ListboxSelect>>', show_movie_poster)
 
         add_result_button = tk.Button(search_window, text="Add Selected Movie", command=add_selected_movie)
         add_result_button.pack(pady=ui_settings["element_spacing"])
@@ -140,12 +167,12 @@ def run_gui():
         selected_watched = watched_listbox.curselection()
 
         if selected_to_watch:
-            movie = to_watch_listbox.get(selected_to_watch[0])
+            movie = movie_data.movies_to_watch[selected_to_watch[0]]
             movie_data.movies_to_watch.remove(movie)
             movie_data.save_data()
             load_movies()
         elif selected_watched:
-            movie = watched_listbox.get(selected_watched[0])
+            movie = movie_data.movies_watched[selected_watched[0]]
             movie_data.movies_watched.remove(movie)
             movie_data.save_data()
             load_movies()
@@ -159,7 +186,7 @@ def run_gui():
     def mark_as_watched():
         selected = to_watch_listbox.curselection()
         if selected:
-            movie = to_watch_listbox.get(selected[0])
+            movie = movie_data.movies_to_watch[selected[0]]
             movie_data.movies_to_watch.remove(movie)
             movie_data.movies_watched.append(movie)
             movie_data.save_data()
@@ -252,6 +279,81 @@ def run_gui():
         watched_button.config(pady=ui_settings["element_spacing"])
         unwatch_button.config(pady=ui_settings["element_spacing"])
         settings_button.config(pady=ui_settings["element_spacing"])
+
+    def show_movie_poster(movie):
+        poster_path = movie['poster_path']
+        if poster_path:
+            if not poster_path.startswith("http"):
+                poster_path = os.path.join("posters", os.path.basename(poster_path))
+            if os.path.exists(poster_path):
+                poster_window = tk.Toplevel(root)
+                poster_window.title(movie['title'])
+                poster_image = Image.open(poster_path)
+                poster_image = poster_image.resize((300, 450), Image.LANCZOS)
+                poster_photo = ImageTk.PhotoImage(poster_image)
+                poster_label = tk.Label(poster_window, image=poster_photo)
+                poster_label.image = poster_photo
+                poster_label.pack()
+            else:
+                messagebox.showwarning("Warning", "Poster not found.")
+
+    def show_movie_details(movie):
+        details = movie_data.get_movie_details(movie['id'])
+        if details:
+            details_window = tk.Toplevel(root)
+            details_window.title(movie['title'])
+
+            # Create a text widget to display the details
+            details_text = tk.Text(details_window, wrap=tk.WORD)
+            details_text.pack(fill=tk.BOTH, expand=True)
+
+            # Format the details in a human-readable way
+            formatted_details = f"""
+Title: {details.get('title', 'N/A')}
+Release Date: {details.get('release_date', 'N/A')}
+Genres: {', '.join([genre['name'] for genre in details.get('genres', [])])}
+Overview: {details.get('overview', 'N/A')}
+Runtime: {details.get('runtime', 'N/A')} minutes
+Rating: {details.get('vote_average', 'N/A')} ({details.get('vote_count', 'N/A')} votes)
+Homepage: {details.get('homepage', 'N/A')}
+            """
+
+            # Insert the formatted details into the text widget
+            details_text.insert(tk.END, formatted_details)
+        else:
+            messagebox.showwarning("Warning", "Details not found.")
+
+    def show_selected_movie_details():
+        selected_to_watch = to_watch_listbox.curselection()
+        selected_watched = watched_listbox.curselection()
+
+        if selected_to_watch:
+            movie = movie_data.movies_to_watch[selected_to_watch[0]]
+            show_movie_details(movie)
+        elif selected_watched:
+            movie = movie_data.movies_watched[selected_watched[0]]
+            show_movie_details(movie)
+        else:
+            messagebox.showwarning("Warning", "Please select a movie to view the details!")
+
+    view_details_button = tk.Button(main_frame, text="View Details", command=show_selected_movie_details)
+    view_details_button.pack(pady=ui_settings["element_spacing"])
+
+    def show_selected_movie_poster():
+        selected_to_watch = to_watch_listbox.curselection()
+        selected_watched = watched_listbox.curselection()
+
+        if selected_to_watch:
+            movie = movie_data.movies_to_watch[selected_to_watch[0]]
+            show_movie_poster(movie)
+        elif selected_watched:
+            movie = movie_data.movies_watched[selected_watched[0]]
+            show_movie_poster(movie)
+        else:
+            messagebox.showwarning("Warning", "Please select a movie to view the poster!")
+
+    view_poster_button = tk.Button(main_frame, text="View Poster", command=show_selected_movie_poster)
+    view_poster_button.pack(pady=ui_settings["element_spacing"])
 
     # Run the GUI event loop
     root.mainloop()

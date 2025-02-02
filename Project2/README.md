@@ -25,7 +25,10 @@ Project2/
 
 ## Setup
 1. Clone the repository.
-2. Install the required packages.
+2. Install the required packages:
+   ```bash
+   pip install Pillow
+   ```
 3. Set the `TMDB_API_KEY` environment variable with your TMDb API key.
 
 ## Usage
