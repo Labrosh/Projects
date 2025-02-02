@@ -1,13 +1,11 @@
 # Project2
 
 ## Overview
-This project is a movie logging application that allows users to search for movies using the TMDb API, add them to a watchlist, mark them as watched, and view their lists. The project includes a command-line interface and a graphical user interface (GUI).
+This project is a movie logging application that allows users to search for movies using the TMDb API, add them to a watchlist, mark them as watched, and view their lists. The project includes a graphical user interface (GUI) and an optional command-line interface (CLI).
 
 ## Project Structure
 ```
 Project2/
-│── Movielog.py
-│── movies.json
 │── gui.py
 │── tmdb_api.py
 │── movie_data.py
@@ -16,12 +14,11 @@ Project2/
 │   ├── test_tmdb_api.py
 │   ├── test_gui.py (optional, later)
 │── README.md
+│── settings.json (generated after first run)
 ```
 
 ## Files
-- **Movielog.py**: Main script to run the application.
-- **movies.json**: JSON file to store the movie lists.
-- **gui.py**: Script for the graphical user interface (optional).
+- **gui.py**: Script for the graphical user interface.
 - **tmdb_api.py**: Script to interact with the TMDb API.
 - **movie_data.py**: Script to manage movie lists.
 - **tests/**: Directory containing test scripts.
@@ -32,9 +29,9 @@ Project2/
 3. Set the `TMDB_API_KEY` environment variable with your TMDb API key.
 
 ## Usage
-Run the main script to start the application:
+Run the GUI script to start the application:
 ```bash
-python Movielog.py
+python gui.py
 ```
 
 ## Running Tests
