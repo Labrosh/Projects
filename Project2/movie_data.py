@@ -75,7 +75,6 @@ def save_data():
     with open("movies.json", "w") as file:
         json.dump({"to_watch": movies_to_watch, "watched": movies_watched}, file)
     print("Your lists have been saved! Goodbye!")
-    exit(0)
 
 def load_data():
     """Load the movie lists from a JSON file."""
