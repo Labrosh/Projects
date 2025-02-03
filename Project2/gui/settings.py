@@ -23,3 +23,7 @@ class SettingsManager:
     def save_settings_to_file(self):
         with open(self.settings_file, "w") as file:
             json.dump(self.ui_settings, file)
+
+    def update_settings(self, new_settings):
+        self.ui_settings.update(new_settings)
+        self.save_settings_to_file()
