@@ -93,10 +93,10 @@ class MovieApp:
 
         if selected_to_watch:
             movie = self.movie_manager.movies_to_watch[selected_to_watch[0]]
-            show_movie_details(self.root, movie)
+            show_movie_details(self, movie)  # Pass the app object
         elif selected_watched:
             movie = self.movie_manager.movies_watched[selected_watched[0]]
-            show_movie_details(self.root, movie)
+            show_movie_details(self, movie)  # Pass the app object
         else:
             messagebox.showwarning("Warning", "Please select a movie to view the details!")
 
@@ -106,19 +106,19 @@ class MovieApp:
 
         if selected_to_watch:
             movie = self.movie_manager.movies_to_watch[selected_to_watch[0]]
-            self.show_movie_poster(self.root, movie)
+            self.show_movie_poster(self, movie)  # Pass the app object
         elif selected_watched:
             movie = self.movie_manager.movies_watched[selected_watched[0]]
-            self.show_movie_poster(self.root, movie)
+            self.show_movie_poster(self, movie)  # Pass the app object
         else:
             messagebox.showwarning("Warning", "Please select a movie to view the poster!")
 
-    def show_movie_poster(self, root, movie):
+    def show_movie_poster(self, app, movie):
         poster_path = movie.get_poster_path()
         if poster_path and os.path.exists(poster_path):
-            poster_window = tk.Toplevel(root)
+            poster_window = tk.Toplevel(app.root)
             poster_window.title(movie.title)
-            ThemeManager.apply_theme(poster_window, self.ui_settings)
+            ThemeManager.apply_theme(poster_window, app.ui_settings)
             poster_image = Image.open(poster_path)
             poster_image = poster_image.resize((300, 450), Image.LANCZOS)
             poster_photo = ImageTk.PhotoImage(poster_image)

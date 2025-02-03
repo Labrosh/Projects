@@ -14,13 +14,13 @@ def update_listbox(listbox, items):
         listbox.insert(tk.END, item.title)
     listbox.update()  # Force update
 
-def show_movie_poster(root, movie):
+def show_movie_poster(app, movie):
     poster_path = movie.poster_path
-    if (poster_path):
-        if (not poster_path.startswith("http")):
+    if poster_path:
+        if not poster_path.startswith("http"):
             poster_path = os.path.join("posters", os.path.basename(poster_path))
-        if (os.path.exists(poster_path)):
-            poster_window = ThemeManager.create_themed_toplevel(root, root.app.ui_settings)
+        if os.path.exists(poster_path):
+            poster_window = ThemeManager.create_themed_toplevel(app.root, app.ui_settings)
             poster_window.title(movie.title)
             poster_image = Image.open(poster_path)
             poster_image = poster_image.resize((300, 450), Image.LANCZOS)
@@ -28,14 +28,14 @@ def show_movie_poster(root, movie):
             poster_label = tk.Label(poster_window, image=poster_photo)
             poster_label.image = poster_photo
             poster_label.pack(padx=10, pady=10)
-            ThemeManager.apply_theme(poster_window, root.app.ui_settings)
+            ThemeManager.apply_theme(poster_window, app.ui_settings)
         else:
             messagebox.showwarning("Warning", "Poster not found.")
 
-def show_movie_details(root, movie):
+def show_movie_details(app, movie):
     details = movie.details
-    if (details):
-        details_window = ThemeManager.create_themed_toplevel(root, root.app.ui_settings)
+    if details:
+        details_window = ThemeManager.create_themed_toplevel(app.root, app.ui_settings)
         details_window.title(movie.title)
 
         details_text = tk.Text(details_window, wrap=tk.WORD)
@@ -53,7 +53,7 @@ Homepage: {details.get('homepage', 'N/A')}
 
         details_text.insert(tk.END, formatted_details)
         details_text.configure(state='disabled')  # Make read-only
-        ThemeManager.apply_theme(details_window, root.app.ui_settings)
+        ThemeManager.apply_theme(details_window, app.ui_settings)
     else:
         messagebox.showwarning("Warning", "Details not found.")
 
