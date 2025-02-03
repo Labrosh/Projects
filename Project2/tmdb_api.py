@@ -12,11 +12,14 @@ This product uses the TMDb API but is not endorsed or certified by TMDb.
 
 # Check for API key
 if not TMDB_API_KEY:
-    print("Error: TMDb API key not found. Set it as an environment variable and try again.")
-    exit(1)
+    print("Warning: TMDb API key not found. Search functionality will be disabled.")
 
 def search_movie(query):
     """Search for a movie using the TMDb API and return a list of results."""
+    if not TMDB_API_KEY:
+        print("Search is disabled. No API key available.")
+        return []  # Return an empty list if no API key is present
+
     url = f"{BASE_URL}/search/movie"
     params = {"api_key": TMDB_API_KEY, "query": query}
     response = requests.get(url, params=params)
