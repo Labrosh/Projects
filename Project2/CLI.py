@@ -1,5 +1,5 @@
 import os
-from tmdb_api import search_movie
+from api.tmdb_api import search_movie
 from movie_data import add_movie, mark_as_watched, view_lists, save_data, load_data
 
 # Check for API key

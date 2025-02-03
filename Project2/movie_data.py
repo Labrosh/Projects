@@ -1,7 +1,8 @@
 import json
 import os
 import requests
-from tmdb_api import BASE_URL, TMDB_API_KEY
+from api.tmdb_api import BASE_URL, TMDB_API_KEY
+from models.movie import Movie
 
 movies_to_watch = []
 movies_watched = []
@@ -86,33 +87,10 @@ def load_data():
         print("No saved data found. Starting fresh.")
 
 def save_poster(movie):
-    poster_url = movie.get('poster_path')
-    if poster_url:
-        os.makedirs("posters", exist_ok=True)
-        poster_path = os.path.join("posters", f"{movie['title'].replace(' ', '_')}.jpg")
-        response = requests.get(poster_url, stream=True)
-        if response.status_code == 200:
-            with open(poster_path, 'wb') as file:
-                for chunk in response.iter_content(1024):
-                    file.write(chunk)
-            return poster_path
-    return None
+    return movie.save_poster()
 
 def save_movie_details(movie):
-    movie_id = movie.get('id')
-    if movie_id:
-        url = f"{BASE_URL}/movie/{movie_id}"
-        params = {"api_key": TMDB_API_KEY}
-        response = requests.get(url, params=params)
-        if response.status_code == 200:
-            details = response.json()
-            for m in movies_to_watch + movies_watched:
-                if m['id'] == movie_id:
-                    m['details'] = details
-                    break
-            save_data()
-            return details
-    return None
+    return movie.fetch_details()
 
 def get_movie_details(movie_id):
     for movie in movies_to_watch + movies_watched:
