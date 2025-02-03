@@ -4,10 +4,10 @@ from PIL import Image, ImageTk
 import os
 import logging
 from models.manager import MovieManager
-from gui.gui_helper import update_listbox, show_movie_poster, show_movie_details, create_widgets, open_settings
+from gui.gui_helper import GUIHelper
 from data.settings import SettingsManager  # Updated import path
 from gui.gui_search import MovieSearchGUI
-from gui.gui_movie_list import MovieListGUI, add_movie, add_movie_to_watchlist, remove_movie, mark_as_watched, unwatch_movie
+from gui.gui_movie_list import MovieListGUI
 from gui.theme import ThemeManager
 
 # Set up logging
@@ -36,20 +36,21 @@ class MovieApp:
         self.movie_manager = MovieManager()
         self.movie_search_gui = MovieSearchGUI(self)
         self.movie_list_gui = MovieListGUI(self)
-        create_widgets(self)
+        self.gui_helper = GUIHelper(self)
+        self.gui_helper.create_widgets()
         self.load_movies()
 
     def load_movies(self):
         logging.debug("Loading movies...")
-        update_listbox(self.to_watch_listbox, self.movie_manager.movies_to_watch)
-        update_listbox(self.watched_listbox, self.movie_manager.movies_watched)
+        self.gui_helper.update_listbox(self.to_watch_listbox, self.movie_manager.movies_to_watch)
+        self.gui_helper.update_listbox(self.watched_listbox, self.movie_manager.movies_watched)
 
     def add_movie(self):
-        add_movie(self)
+        self.movie_list_gui.add_movie()
         self.load_movies()  # Ensure the movie list is updated after adding a movie
 
     def add_movie_to_watchlist(self, title, release_date="Unknown"):
-        add_movie_to_watchlist(self, title, release_date)
+        self.movie_list_gui.add_movie_to_watchlist(title, release_date)
         self.load_movies()  # Ensure the movie list is updated after adding a movie to the watchlist
 
     def search_movie(self):
@@ -59,19 +60,19 @@ class MovieApp:
         self.movie_search_gui.display_search_results(results)
 
     def remove_movie(self):
-        remove_movie(self)
+        self.movie_list_gui.remove_movie()
         self.load_movies()  # Ensure the movie list is updated after removing a movie
 
     def mark_as_watched(self):
-        mark_as_watched(self)
+        self.movie_list_gui.mark_as_watched()
         self.load_movies()  # Ensure the movie list is updated after marking a movie as watched
 
     def unwatch_movie(self):
-        unwatch_movie(self)
+        self.movie_list_gui.unwatch_movie()
         self.load_movies()  # Ensure the movie list is updated after unwatching a movie
 
     def open_settings(self):
-        open_settings(self)
+        self.gui_helper.open_settings()
 
     def update_ui(self):
         # Only set minimum size, allow window to be larger
@@ -93,10 +94,10 @@ class MovieApp:
 
         if selected_to_watch:
             movie = self.movie_manager.movies_to_watch[selected_to_watch[0]]
-            show_movie_details(self, movie)  # Pass the app object
+            self.gui_helper.show_movie_details(movie)  # Use GUIHelper method
         elif selected_watched:
             movie = self.movie_manager.movies_watched[selected_watched[0]]
-            show_movie_details(self, movie)  # Pass the app object
+            self.gui_helper.show_movie_details(movie)  # Use GUIHelper method
         else:
             messagebox.showwarning("Warning", "Please select a movie to view the details!")
 
@@ -106,27 +107,12 @@ class MovieApp:
 
         if selected_to_watch:
             movie = self.movie_manager.movies_to_watch[selected_to_watch[0]]
-            self.show_movie_poster(self, movie)  # Pass the app object
+            self.gui_helper.show_movie_poster(movie)  # Use GUIHelper method
         elif selected_watched:
             movie = self.movie_manager.movies_watched[selected_watched[0]]
-            self.show_movie_poster(self, movie)  # Pass the app object
+            self.gui_helper.show_movie_poster(movie)  # Use GUIHelper method
         else:
             messagebox.showwarning("Warning", "Please select a movie to view the poster!")
-
-    def show_movie_poster(self, app, movie):
-        poster_path = movie.get_poster_path()
-        if poster_path and os.path.exists(poster_path):
-            poster_window = tk.Toplevel(app.root)
-            poster_window.title(movie.title)
-            ThemeManager.apply_theme(poster_window, app.ui_settings)
-            poster_image = Image.open(poster_path)
-            poster_image = poster_image.resize((300, 450), Image.LANCZOS)
-            poster_photo = ImageTk.PhotoImage(poster_image)
-            poster_label = tk.Label(poster_window, image=poster_photo)
-            poster_label.image = poster_photo
-            poster_label.pack()
-        else:
-            messagebox.showwarning("Warning", "Poster not found!")
 
 if __name__ == "__main__":
     root = tk.Tk()

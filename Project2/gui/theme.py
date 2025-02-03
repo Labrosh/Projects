@@ -101,8 +101,9 @@ class Theme:
                 style="Custom.Vertical.TScrollbar",
                 command=widget.yview
             )
-            scrollbar.grid(row=widget.grid_info()['row'], column=1, sticky="ns")
-            widget.configure(yscrollcommand=scrollbar.set)
+            if 'row' in widget.grid_info():
+                scrollbar.grid(row=widget.grid_info()['row'], column=1, sticky="ns")
+                widget.configure(yscrollcommand=scrollbar.set)
 
         # Apply theme to all children
         for child in widget.winfo_children():
@@ -238,6 +239,15 @@ class ThemeManager:
         window.title(title)
         theme = ThemeManager.get_theme(settings["current_theme"])
         theme.apply(window)
+        
+        # Center the window
+        window.update_idletasks()
+        width = window.winfo_width()
+        height = window.winfo_height()
+        x = (window.winfo_screenwidth() // 2) - (width // 2)
+        y = (window.winfo_screenheight() // 2) - (height // 2)
+        window.geometry(f'{width}x{height}+{x}+{y}')
+        
         return window
 
     @staticmethod
