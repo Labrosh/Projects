@@ -4,7 +4,7 @@ from PIL import Image, ImageTk
 import requests
 from api.tmdb_api import TMDbAPI
 from models.movie import Movie
-from movie_data import MovieDataManager
+from models.manager import MovieManager
 
 def search_movie(app):
     app.movie_search_gui.search_movie()
@@ -15,7 +15,7 @@ def display_search_results(app, results):
 class MovieSearchGUI:
     def __init__(self, app):
         self.app = app
-        self.movie_data_manager = MovieDataManager()
+        self.movie_manager = MovieManager()
 
     def search_movie(self):
         query = self.app.search_entry.get().strip()
@@ -53,7 +53,7 @@ class MovieSearchGUI:
                 poster_path = movie.save_poster()
                 details = TMDbAPI.get_movie_details(movie.id)
                 movie.details = details
-                self.movie_data_manager.add_movie(movie)
+                self.movie_manager.add_movie(movie)
                 self.app.load_movies()
                 search_window.destroy()
             else:

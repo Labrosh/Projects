@@ -1,12 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
-import requests
 import os
+import logging
 from gui.gui_movie_list import MovieListGUI
 from gui.gui_search import MovieSearchGUI
 
 def update_listbox(listbox, items):
+    logging.debug(f"Updating listbox with {len(items)} items")
     listbox.delete(0, tk.END)
     for item in items:
         listbox.insert(tk.END, item.title)
@@ -104,9 +105,6 @@ def create_widgets(app):
 
     view_poster_button = tk.Button(main_frame, text="View Poster", command=app.show_selected_movie_poster)
     view_poster_button.pack(pady=app.ui_settings["element_spacing"])
-
-    app.add_movie_button = tk.Button(app.root, text="Add Movie", command=app.add_movie)
-    app.add_movie_button.pack()
 
 def open_settings(app):
     settings_window = tk.Toplevel(app.root)

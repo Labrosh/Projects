@@ -1,15 +1,16 @@
 import tkinter as tk
 from tkinter import messagebox
 from PIL import Image, ImageTk
-import requests
 import os
+import logging
 from models.manager import MovieManager
-from models.movie import Movie
-from api.tmdb_api import TMDbAPI
 from gui.gui_helper import update_listbox, show_movie_poster, show_movie_details, create_widgets, open_settings
 from gui.settings import SettingsManager
 from gui.gui_search import MovieSearchGUI
 from gui.gui_movie_list import MovieListGUI, add_movie, add_movie_to_watchlist, remove_movie, mark_as_watched, unwatch_movie
+
+# Set up logging
+logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class MovieApp:
     def __init__(self, root):
@@ -25,14 +26,17 @@ class MovieApp:
         self.load_movies()
 
     def load_movies(self):
+        logging.debug("Loading movies...")
         update_listbox(self.to_watch_listbox, self.movie_manager.movies_to_watch)
         update_listbox(self.watched_listbox, self.movie_manager.movies_watched)
 
     def add_movie(self):
         add_movie(self)
+        self.load_movies()  # Ensure the movie list is updated after adding a movie
 
     def add_movie_to_watchlist(self, title, release_date="Unknown"):
         add_movie_to_watchlist(self, title, release_date)
+        self.load_movies()  # Ensure the movie list is updated after adding a movie to the watchlist
 
     def search_movie(self):
         self.movie_search_gui.search_movie()
@@ -42,12 +46,15 @@ class MovieApp:
 
     def remove_movie(self):
         remove_movie(self)
+        self.load_movies()  # Ensure the movie list is updated after removing a movie
 
     def mark_as_watched(self):
         mark_as_watched(self)
+        self.load_movies()  # Ensure the movie list is updated after marking a movie as watched
 
     def unwatch_movie(self):
         unwatch_movie(self)
+        self.load_movies()  # Ensure the movie list is updated after unwatching a movie
 
     def open_settings(self):
         open_settings(self)

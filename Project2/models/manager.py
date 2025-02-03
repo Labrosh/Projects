@@ -34,18 +34,24 @@ class MovieManager:
             self.save_data()
 
     def save_data(self):
+        data = {
+            "to_watch": [movie.to_dict() for movie in self.movies_to_watch],
+            "watched": [movie.to_dict() for movie in self.movies_watched]
+        }
         with open(self.data_file, "w") as file:
-            json.dump({
-                "to_watch": [m.to_dict() for m in self.movies_to_watch],
-                "watched": [m.to_dict() for m in self.movies_watched],
-            }, file, indent=4)
+            json.dump(data, file)
 
     def load_data(self):
-        if os.path.exists(self.data_file):
+        try:
             with open(self.data_file, "r") as file:
                 data = json.load(file)
-                self.movies_to_watch = [Movie(**m) for m in data.get("to_watch", [])]
-                self.movies_watched = [Movie(**m) for m in data.get("watched", [])]
-        else:
-            self.movies_to_watch = []
-            self.movies_watched = []
+                self.movies_to_watch = [Movie(**movie) for movie in data.get("to_watch", [])]
+                self.movies_watched = [Movie(**movie) for movie in data.get("watched", [])]
+        except FileNotFoundError:
+            pass
+
+    def get_movie_details(self, movie_id):
+        for movie in self.movies_to_watch + self.movies_watched:
+            if movie.id == movie_id:
+                return movie.details
+        return None

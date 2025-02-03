@@ -29,6 +29,15 @@ class Movie:
             return poster_file
         return None
 
+    def fetch_details(self):
+        # Fetch movie details from TMDb API
+        url = f"{BASE_URL}/movie/{self.id}?api_key={TMDB_API_KEY}"
+        response = requests.get(url)
+        if response.status_code == 200:
+            self.details = response.json()
+            return self.details
+        return None
+
     def get_poster_path(self):
         if self.poster_path and not os.path.isabs(self.poster_path):
             return os.path.join("data/posters", self.poster_path)
