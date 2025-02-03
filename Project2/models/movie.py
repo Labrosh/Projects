@@ -18,20 +18,18 @@ class Movie:
     def save_poster(self):
         if self.poster_path and self.poster_path.startswith("http"):
             os.makedirs("data/posters", exist_ok=True)
-            poster_file = os.path.join("data/posters", f"{self.title.replace(' ', '_')}.jpg")
+            poster_filename = f"{self.title.replace(' ', '_')}.jpg"
+            poster_file = os.path.join("data/posters", poster_filename)
             response = requests.get(self.poster_path, stream=True)
             if response.status_code == 200:
                 with open(poster_file, "wb") as file:
                     for chunk in response.iter_content(1024):
                         file.write(chunk)
-                self.poster_path = poster_file
+                self.poster_path = poster_filename  # Save only the filename
             return poster_file
         return None
 
-    def fetch_details(self):
-        if TMDB_API_KEY:
-            url = f"{BASE_URL}/movie/{self.movie_id}"
-            response = requests.get(url, params={"api_key": TMDB_API_KEY})
-            if response.status_code == 200:
-                self.details = response.json()
-        return self.details
+    def get_poster_path(self):
+        if self.poster_path and not os.path.isabs(self.poster_path):
+            return os.path.join("data/posters", self.poster_path)
+        return self.poster_path

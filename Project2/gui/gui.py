@@ -120,10 +120,12 @@ class MovieApp:
         def add_selected_movie():
             selected = result_listbox.curselection()
             if selected:
-                movie = results[selected[0]]
-                poster_path = self.movie_manager.save_poster(movie)
-                details = TMDbAPI.get_movie_details(movie['id'])
-                self.movie_manager.add_movie(Movie(movie['id'], movie['title'], movie['release_date'], poster_path or movie['poster_path'], details))
+                movie_data = results[selected[0]]
+                movie = Movie(movie_data["id"], movie_data["title"], movie_data["release_date"], movie_data["poster_path"])
+                poster_path = movie.save_poster()  # Changed to use the instantiated Movie object
+                details = TMDbAPI.get_movie_details(movie.id)
+                movie.details = details
+                self.movie_manager.add_movie(movie)
                 self.load_movies()
                 search_window.destroy()
             else:
@@ -261,12 +263,26 @@ class MovieApp:
 
         if selected_to_watch:
             movie = self.movie_manager.movies_to_watch[selected_to_watch[0]]
-            show_movie_poster(self.root, movie)
+            self.show_movie_poster(self.root, movie)
         elif selected_watched:
             movie = self.movie_manager.movies_watched[selected_watched[0]]
-            show_movie_poster(self.root, movie)
+            self.show_movie_poster(self.root, movie)
         else:
             messagebox.showwarning("Warning", "Please select a movie to view the poster!")
+
+    def show_movie_poster(self, root, movie):
+        poster_path = movie.get_poster_path()
+        if poster_path and os.path.exists(poster_path):
+            poster_window = tk.Toplevel(root)
+            poster_window.title(movie.title)
+            poster_image = Image.open(poster_path)
+            poster_image = poster_image.resize((300, 450), Image.LANCZOS)
+            poster_photo = ImageTk.PhotoImage(poster_image)
+            poster_label = tk.Label(poster_window, image=poster_photo)
+            poster_label.image = poster_photo
+            poster_label.pack()
+        else:
+            messagebox.showwarning("Warning", "Poster not found!")
 
 if __name__ == "__main__":
     root = tk.Tk()

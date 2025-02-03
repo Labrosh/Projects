@@ -12,13 +12,13 @@ class MovieManager:
         self.load_data()
 
     def add_movie(self, movie):
-        if not any(m.movie_id == movie.movie_id for m in self.movies_to_watch + self.movies_watched):
+        if not any(m.id == movie.id for m in self.movies_to_watch + self.movies_watched):
             self.movies_to_watch.append(movie)
             self.save_data()
 
     def remove_movie(self, movie):
-        self.movies_to_watch = [m for m in self.movies_to_watch if m.movie_id != movie.movie_id]
-        self.movies_watched = [m for m in self.movies_watched if m.movie_id != movie.movie_id]
+        self.movies_to_watch = [m for m in self.movies_to_watch if m.id != movie.id]
+        self.movies_watched = [m for m in self.movies_watched if m.id != movie.id]
         self.save_data()
 
     def mark_as_watched(self, movie):
@@ -27,11 +27,17 @@ class MovieManager:
             self.movies_watched.append(movie)
             self.save_data()
 
+    def unwatch_movie(self, movie):
+        if movie in self.movies_watched:
+            self.movies_watched.remove(movie)
+            self.movies_to_watch.append(movie)
+            self.save_data()
+
     def save_data(self):
         with open(self.data_file, "w") as file:
             json.dump({
                 "to_watch": [m.__dict__ for m in self.movies_to_watch],
-                "watched": [m.__dict__ for m in self.movies_watched]
+                "watched": [m.__dict__ for m in self.movies_watched],
             }, file, indent=4)
 
     def load_data(self):
@@ -40,3 +46,6 @@ class MovieManager:
                 data = json.load(file)
                 self.movies_to_watch = [Movie(**m) for m in data.get("to_watch", [])]
                 self.movies_watched = [Movie(**m) for m in data.get("watched", [])]
+        else:
+            self.movies_to_watch = []
+            self.movies_watched = []
