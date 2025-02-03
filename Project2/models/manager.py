@@ -2,6 +2,7 @@
 
 import json
 import os
+import logging
 from models.movie import Movie
 
 class MovieManager:
@@ -34,12 +35,17 @@ class MovieManager:
             self.save_data()
 
     def save_data(self):
-        data = {
-            "to_watch": [movie.to_dict() for movie in self.movies_to_watch],
-            "watched": [movie.to_dict() for movie in self.movies_watched]
-        }
-        with open(self.data_file, "w") as file:
-            json.dump(data, file)
+        try:
+            data = {
+                "to_watch": [movie.to_dict() for movie in self.movies_to_watch],
+                "watched": [movie.to_dict() for movie in self.movies_watched]
+            }
+            os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
+            with open(self.data_file, "w") as file:
+                json.dump(data, file)
+        except Exception as e:
+            logging.error(f"Failed to save data: {e}")
+            raise
 
     def load_data(self):
         try:

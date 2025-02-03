@@ -2,6 +2,7 @@
 
 import os
 import requests
+import logging
 from api.tmdb_api import BASE_URL, TMDB_API_KEY
 
 class Movie:
@@ -17,16 +18,19 @@ class Movie:
 
     def save_poster(self):
         if self.poster_path and self.poster_path.startswith("http"):
-            os.makedirs("data/posters", exist_ok=True)
-            poster_filename = f"{self.title.replace(' ', '_')}.jpg"
-            poster_file = os.path.join("data/posters", poster_filename)
-            response = requests.get(self.poster_path, stream=True)
-            if response.status_code == 200:
-                with open(poster_file, "wb") as file:
-                    for chunk in response.iter_content(1024):
-                        file.write(chunk)
-                self.poster_path = poster_filename  # Save only the filename
-            return poster_file
+            try:
+                os.makedirs("data/posters", exist_ok=True)
+                poster_filename = f"{self.title.replace(' ', '_')}.jpg"
+                poster_file = os.path.join("data/posters", poster_filename)
+                response = requests.get(self.poster_path, stream=True)
+                if response.status_code == 200:
+                    with open(poster_file, "wb") as file:
+                        for chunk in response.iter_content(1024):
+                            file.write(chunk)
+                    self.poster_path = poster_filename
+                    return poster_file
+            except Exception as e:
+                logging.error(f"Failed to save poster: {e}")
         return None
 
     def fetch_details(self):
@@ -39,9 +43,11 @@ class Movie:
         return None
 
     def get_poster_path(self):
-        if self.poster_path and not os.path.isabs(self.poster_path):
-            return os.path.join("data/posters", self.poster_path)
-        return self.poster_path
+        if not self.poster_path:
+            return None
+        if self.poster_path.startswith("http"):
+            return self.poster_path
+        return os.path.join("data/posters", self.poster_path)
 
     def to_dict(self):
         return {
