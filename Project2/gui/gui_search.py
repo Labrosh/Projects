@@ -6,6 +6,12 @@ from api.tmdb_api import TMDbAPI
 from models.movie import Movie
 from movie_data import MovieDataManager
 
+def search_movie(app):
+    app.movie_search_gui.search_movie()
+
+def display_search_results(app, results):
+    app.movie_search_gui.display_search_results(results)
+
 class MovieSearchGUI:
     def __init__(self, app):
         self.app = app

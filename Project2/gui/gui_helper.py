@@ -105,6 +105,9 @@ def create_widgets(app):
     view_poster_button = tk.Button(main_frame, text="View Poster", command=app.show_selected_movie_poster)
     view_poster_button.pack(pady=app.ui_settings["element_spacing"])
 
+    app.add_movie_button = tk.Button(app.root, text="Add Movie", command=app.add_movie)
+    app.add_movie_button.pack()
+
 def open_settings(app):
     settings_window = tk.Toplevel(app.root)
     settings_window.title("Settings")

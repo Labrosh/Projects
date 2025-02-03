@@ -8,8 +8,8 @@ from models.movie import Movie
 from api.tmdb_api import TMDbAPI
 from gui.gui_helper import update_listbox, show_movie_poster, show_movie_details, create_widgets, open_settings
 from gui.settings import SettingsManager
-from gui.gui_search import search_movie, display_search_results
-from gui.gui_movie_list import add_movie, add_movie_to_watchlist, remove_movie, mark_as_watched, unwatch_movie
+from gui.gui_search import MovieSearchGUI
+from gui.gui_movie_list import MovieListGUI, add_movie, add_movie_to_watchlist, remove_movie, mark_as_watched, unwatch_movie
 
 class MovieApp:
     def __init__(self, root):
@@ -19,6 +19,8 @@ class MovieApp:
         self.ui_settings = self.settings_manager.ui_settings
         self.root.geometry(f"{self.ui_settings['window_width']}x{self.ui_settings['window_height']}")
         self.movie_manager = MovieManager()
+        self.movie_search_gui = MovieSearchGUI(self)
+        self.movie_list_gui = MovieListGUI(self)
         create_widgets(self)
         self.load_movies()
 
@@ -33,10 +35,10 @@ class MovieApp:
         add_movie_to_watchlist(self, title, release_date)
 
     def search_movie(self):
-        search_movie(self)
+        self.movie_search_gui.search_movie()
 
     def display_search_results(self, results):
-        display_search_results(self, results)
+        self.movie_search_gui.display_search_results(results)
 
     def remove_movie(self):
         remove_movie(self)
