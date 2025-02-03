@@ -4,8 +4,8 @@ from PIL import Image, ImageTk
 import requests
 import os
 import json
-import movie_data  # Import movie functions
-import tmdb_api  # Import TMDb API functions
+import movie_data
+import tmdb_api
 
 # UI Settings
 ui_settings = {
@@ -17,7 +17,6 @@ ui_settings = {
     "window_height": 900
 }
 
-# Load settings from file
 def load_settings():
     global ui_settings
     try:
@@ -26,7 +25,6 @@ def load_settings():
     except FileNotFoundError:
         pass
 
-# Save settings to file
 def save_settings_to_file():
     with open("settings.json", "w") as file:
         json.dump(ui_settings, file)
@@ -34,32 +32,27 @@ def save_settings_to_file():
 load_settings()
 
 def run_gui():
-    """Initialize the GUI window."""
     root = tk.Tk()
     root.title("Movielog - Movie Tracker")
     root.geometry(f"{ui_settings['window_width']}x{ui_settings['window_height']}")
 
-    # Main Frame
+    movie_data.load_data()
+
     main_frame = tk.Frame(root)
     main_frame.pack(padx=10, pady=10, fill=tk.BOTH, expand=True)
 
-    # Label - "To Watch" List
     label_to_watch = tk.Label(main_frame, text="Movies to Watch", font=("Arial", ui_settings["font_size"]))
     label_to_watch.pack(pady=ui_settings["element_spacing"])
 
-    # Movie Listbox - "To Watch"
     to_watch_listbox = tk.Listbox(main_frame, height=ui_settings["listbox_height"], width=ui_settings["listbox_width"])
     to_watch_listbox.pack(pady=ui_settings["element_spacing"])
 
-    # Label - "Watched" List
     label_watched = tk.Label(main_frame, text="Movies Watched", font=("Arial", ui_settings["font_size"]))
     label_watched.pack(pady=ui_settings["element_spacing"])
 
-    # Movie Listbox - "Watched"
     watched_listbox = tk.Listbox(main_frame, height=ui_settings["listbox_height"], width=ui_settings["listbox_width"])
     watched_listbox.pack(pady=ui_settings["element_spacing"])
 
-    # Load movies from movie_data.py
     def load_movies():
         to_watch_listbox.delete(0, tk.END)
         watched_listbox.delete(0, tk.END)
@@ -68,10 +61,9 @@ def run_gui():
         for movie in movie_data.movies_watched:
             watched_listbox.insert(tk.END, movie['title'])
 
-    movie_data.load_data()  # Load from JSON
-    load_movies()  # Display in GUI
+    movie_data.load_data()
+    load_movies()
 
-    # Add Movie Entry + Button
     movie_entry_frame = tk.Frame(main_frame)
     movie_entry_frame.pack(pady=ui_settings["element_spacing"])
 
@@ -91,7 +83,6 @@ def run_gui():
     add_button = tk.Button(movie_entry_frame, text="Add Movie", command=add_movie)
     add_button.pack(side=tk.LEFT, padx=ui_settings["element_spacing"])
 
-    # Search Bar + Button
     search_frame = tk.Frame(main_frame)
     search_frame.pack(pady=ui_settings["element_spacing"])
 
@@ -109,7 +100,6 @@ def run_gui():
             messagebox.showinfo("Info", "No results found.")
             return
 
-        # Create a selection window for results
         search_window = tk.Toplevel(root)
         search_window.title("Search Results")
         search_window.geometry("400x300")
@@ -161,7 +151,6 @@ def run_gui():
     search_button = tk.Button(search_frame, text="Search & Add Movie", command=search_movie)
     search_button.pack(side=tk.LEFT, padx=ui_settings["element_spacing"])
 
-    # Remove Movie Button
     def remove_movie():
         selected_to_watch = to_watch_listbox.curselection()
         selected_watched = watched_listbox.curselection()
@@ -182,7 +171,6 @@ def run_gui():
     remove_button = tk.Button(main_frame, text="Remove Movie", command=remove_movie)
     remove_button.pack(pady=ui_settings["element_spacing"])
 
-    # Mark as Watched Button
     def mark_as_watched():
         selected = to_watch_listbox.curselection()
         if selected:
@@ -197,11 +185,10 @@ def run_gui():
     watched_button = tk.Button(main_frame, text="Mark as Watched", command=mark_as_watched)
     watched_button.pack(pady=ui_settings["element_spacing"])
 
-    # Un-Watch Button
     def unwatch_movie():
         selected = watched_listbox.curselection()
         if selected:
-            movie = watched_listbox.get(selected[0])
+            movie = movie_data.movies_watched[selected[0]]
             movie_data.movies_watched.remove(movie)
             movie_data.movies_to_watch.append(movie)
             movie_data.save_data()
@@ -212,7 +199,6 @@ def run_gui():
     unwatch_button = tk.Button(main_frame, text="Un-Watch", command=unwatch_movie)
     unwatch_button.pack(pady=ui_settings["element_spacing"])
 
-    # Settings Button
     def open_settings():
         settings_window = tk.Toplevel(root)
         settings_window.title("Settings")
@@ -266,7 +252,6 @@ def run_gui():
     settings_button = tk.Button(main_frame, text="Settings", command=open_settings)
     settings_button.pack(pady=ui_settings["element_spacing"])
 
-    # Update UI elements in real-time
     def update_ui():
         root.geometry(f"{ui_settings['window_width']}x{ui_settings['window_height']}")
         label_to_watch.config(font=("Arial", ui_settings["font_size"]))
@@ -303,11 +288,9 @@ def run_gui():
             details_window = tk.Toplevel(root)
             details_window.title(movie['title'])
 
-            # Create a text widget to display the details
             details_text = tk.Text(details_window, wrap=tk.WORD)
             details_text.pack(fill=tk.BOTH, expand=True)
 
-            # Format the details in a human-readable way
             formatted_details = f"""
 Title: {details.get('title', 'N/A')}
 Release Date: {details.get('release_date', 'N/A')}
@@ -318,7 +301,6 @@ Rating: {details.get('vote_average', 'N/A')} ({details.get('vote_count', 'N/A')}
 Homepage: {details.get('homepage', 'N/A')}
             """
 
-            # Insert the formatted details into the text widget
             details_text.insert(tk.END, formatted_details)
         else:
             messagebox.showwarning("Warning", "Details not found.")
@@ -355,7 +337,6 @@ Homepage: {details.get('homepage', 'N/A')}
     view_poster_button = tk.Button(main_frame, text="View Poster", command=show_selected_movie_poster)
     view_poster_button.pack(pady=ui_settings["element_spacing"])
 
-    # Run the GUI event loop
     root.mainloop()
 
 if __name__ == "__main__":

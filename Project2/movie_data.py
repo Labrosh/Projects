@@ -5,10 +5,8 @@ from tmdb_api import BASE_URL, TMDB_API_KEY
 
 movies_to_watch = []
 movies_watched = []
-movie_details = {}
 
 def add_movie(movie, poster_url=None):
-    """Add a movie to the watched list."""
     movie_title = movie.strip().lower()
     for m in movies_to_watch:
         if m['title'].lower() == movie_title:
@@ -20,7 +18,6 @@ def add_movie(movie, poster_url=None):
         print(f"'{movie}' is not in your 'to watch' list.")
 
 def remove_movie():
-    """Remove a movie from the to watch or watched list."""
     print("\nMovies to Watch:")
     for i, movie in enumerate(movies_to_watch, 1):
         print(f"{i}. {movie['title']}")
@@ -43,7 +40,6 @@ def remove_movie():
         print("No movie removed.")
 
 def mark_as_watched():
-    """Mark a movie as watched."""
     if not movies_to_watch:
         print("Your 'to watch' list is empty.")
         return
@@ -65,7 +61,6 @@ def mark_as_watched():
         print("No movie marked as watched.")
 
 def view_lists():
-    """View the lists of movies to watch and watched movies."""
     print("\nMovies to Watch:")
     for movie in movies_to_watch:
         print(f"- {movie['title']}")
@@ -75,16 +70,12 @@ def view_lists():
     print()
 
 def save_data():
-    """Save the movie lists and details to JSON files."""
     with open("movies.json", "w") as file:
         json.dump({"to_watch": movies_to_watch, "watched": movies_watched}, file)
-    with open("movie_details.json", "w") as file:
-        json.dump(movie_details, file)
     print("Your lists and details have been saved!")
 
 def load_data():
-    """Load the movie lists and details from JSON files."""
-    global movies_to_watch, movies_watched, movie_details
+    global movies_to_watch, movies_watched
     try:
         with open("movies.json", "r") as file:
             data = json.load(file)
@@ -93,18 +84,10 @@ def load_data():
             print("Lists loaded successfully!")
     except FileNotFoundError:
         print("No saved data found. Starting fresh.")
-    try:
-        with open("movie_details.json", "r") as file:
-            movie_details = json.load(file)
-            print("Movie details loaded successfully!")
-    except FileNotFoundError:
-        print("No saved movie details found. Starting fresh.")
 
 def save_poster(movie):
-    """Save the movie poster locally."""
     poster_url = movie.get('poster_path')
     if poster_url:
-        # Ensure the posters directory exists
         os.makedirs("posters", exist_ok=True)
         poster_path = os.path.join("posters", f"{movie['title'].replace(' ', '_')}.jpg")
         response = requests.get(poster_url, stream=True)
@@ -116,7 +99,6 @@ def save_poster(movie):
     return None
 
 def save_movie_details(movie):
-    """Save detailed information about a movie."""
     movie_id = movie.get('id')
     if movie_id:
         url = f"{BASE_URL}/movie/{movie_id}"
@@ -124,10 +106,16 @@ def save_movie_details(movie):
         response = requests.get(url, params=params)
         if response.status_code == 200:
             details = response.json()
-            movie_details[movie_id] = details
+            for m in movies_to_watch + movies_watched:
+                if m['id'] == movie_id:
+                    m['details'] = details
+                    break
+            save_data()
             return details
     return None
 
 def get_movie_details(movie_id):
-    """Retrieve detailed information about a movie."""
-    return movie_details.get(movie_id)
+    for movie in movies_to_watch + movies_watched:
+        if movie['id'] == movie_id:
+            return movie.get('details')
+    return None
