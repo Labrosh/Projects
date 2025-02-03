@@ -3,6 +3,8 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import requests
 import os
+from gui.gui_movie_list import MovieListGUI
+from gui.gui_search import MovieSearchGUI
 
 def update_listbox(listbox, items):
     listbox.delete(0, tk.END)
@@ -71,7 +73,8 @@ def create_widgets(app):
     app.movie_entry = tk.Entry(movie_entry_frame, width=40)
     app.movie_entry.pack(side=tk.LEFT, padx=app.ui_settings["element_spacing"])
 
-    add_button = tk.Button(movie_entry_frame, text="Add Movie", command=app.add_movie)
+    movie_list_gui = MovieListGUI(app)
+    add_button = tk.Button(movie_entry_frame, text="Add Movie", command=movie_list_gui.add_movie)
     add_button.pack(side=tk.LEFT, padx=app.ui_settings["element_spacing"])
 
     search_frame = tk.Frame(main_frame)
@@ -80,16 +83,17 @@ def create_widgets(app):
     app.search_entry = tk.Entry(search_frame, width=40)
     app.search_entry.pack(side=tk.LEFT, padx=app.ui_settings["element_spacing"])
 
-    search_button = tk.Button(search_frame, text="Search & Add Movie", command=app.search_movie)
+    movie_search_gui = MovieSearchGUI(app)
+    search_button = tk.Button(search_frame, text="Search & Add Movie", command=movie_search_gui.search_movie)
     search_button.pack(side=tk.LEFT, padx=app.ui_settings["element_spacing"])
 
-    remove_button = tk.Button(main_frame, text="Remove Movie", command=app.remove_movie)
+    remove_button = tk.Button(main_frame, text="Remove Movie", command=movie_list_gui.remove_movie)
     remove_button.pack(pady=app.ui_settings["element_spacing"])
 
-    watched_button = tk.Button(main_frame, text="Mark as Watched", command=app.mark_as_watched)
+    watched_button = tk.Button(main_frame, text="Mark as Watched", command=movie_list_gui.mark_as_watched)
     watched_button.pack(pady=app.ui_settings["element_spacing"])
 
-    unwatch_button = tk.Button(main_frame, text="Un-Watch", command=app.unwatch_movie)
+    unwatch_button = tk.Button(main_frame, text="Un-Watch", command=movie_list_gui.unwatch_movie)
     unwatch_button.pack(pady=app.ui_settings["element_spacing"])
 
     settings_button = tk.Button(main_frame, text="Settings", command=app.open_settings)

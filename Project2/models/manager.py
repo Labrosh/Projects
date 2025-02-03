@@ -36,8 +36,8 @@ class MovieManager:
     def save_data(self):
         with open(self.data_file, "w") as file:
             json.dump({
-                "to_watch": [m.__dict__ for m in self.movies_to_watch],
-                "watched": [m.__dict__ for m in self.movies_watched],
+                "to_watch": [m.to_dict() for m in self.movies_to_watch],
+                "watched": [m.to_dict() for m in self.movies_watched],
             }, file, indent=4)
 
     def load_data(self):

@@ -33,3 +33,12 @@ class Movie:
         if self.poster_path and not os.path.isabs(self.poster_path):
             return os.path.join("data/posters", self.poster_path)
         return self.poster_path
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "release_date": self.release_date,
+            "poster_path": self.poster_path,
+            "details": self.details,
+        }
