@@ -3,7 +3,7 @@ from tkinter import messagebox
 from PIL import Image, ImageTk
 import os
 import logging
-from gui.theme import ThemeManager
+from gui.color_scheme import ColorSchemeManager
 
 class GUIHelper:
     def __init__(self, app):
@@ -30,7 +30,7 @@ class GUIHelper:
             if not poster_path.startswith("http"):
                 poster_path = os.path.join("data/posters", os.path.basename(poster_path))
             if os.path.exists(poster_path):
-                poster_window = ThemeManager.create_themed_toplevel(self.app.root, self.app.ui_settings)
+                poster_window = ColorSchemeManager.create_themed_toplevel(self.app.root, self.app.ui_settings)
                 poster_window.title(movie.title)
                 poster_image = Image.open(poster_path)
                 poster_image = poster_image.resize((300, 450), Image.LANCZOS)
@@ -38,7 +38,7 @@ class GUIHelper:
                 poster_label = tk.Label(poster_window, image=poster_photo)
                 poster_label.image = poster_photo
                 poster_label.pack(padx=10, pady=10)
-                ThemeManager.apply_theme(poster_window, self.app.ui_settings)
+                ColorSchemeManager.apply_scheme(poster_window, self.app.ui_settings)
                 self.center_window(poster_window)  # Center the window
             else:
                 messagebox.showwarning("Warning", "Poster not found.")
@@ -46,7 +46,7 @@ class GUIHelper:
     def show_movie_details(self, movie):
         details = movie.details
         if details:
-            details_window = ThemeManager.create_themed_toplevel(self.app.root, self.app.ui_settings)
+            details_window = ColorSchemeManager.create_themed_toplevel(self.app.root, self.app.ui_settings)
             details_window.title(movie.title)
 
             details_text = tk.Text(details_window, wrap=tk.WORD)
@@ -64,14 +64,14 @@ Homepage: {details.get('homepage', 'N/A')}
 
             details_text.insert(tk.END, formatted_details)
             details_text.configure(state='disabled')  # Make read-only
-            ThemeManager.apply_theme(details_window, self.app.ui_settings)
+            ColorSchemeManager.apply_scheme(details_window, self.app.ui_settings)
             self.center_window(details_window)  # Center the window
         else:
             messagebox.showwarning("Warning", "Details not found.")
 
     def create_widgets(self):
         # Configure root window style
-        ThemeManager.apply_theme(self.app.root, self.app.ui_settings)
+        ColorSchemeManager.apply_scheme(self.app.root, self.app.ui_settings)
         
         # Make the root window responsive
         self.app.root.grid_rowconfigure(0, weight=1)
@@ -82,12 +82,12 @@ Homepage: {details.get('homepage', 'N/A')}
         main_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
         main_frame.grid_columnconfigure(1, weight=1)  # Make center column expand
         main_frame.grid_rowconfigure(0, weight=1)     # Make row expand
-        ThemeManager.apply_theme(main_frame, self.app.ui_settings)
+        ColorSchemeManager.apply_scheme(main_frame, self.app.ui_settings)
 
         # Left panel for buttons
         left_panel = tk.Frame(main_frame)
         left_panel.grid(row=0, column=0, sticky="ns", padx=10)
-        ThemeManager.apply_theme(left_panel, self.app.ui_settings)
+        ColorSchemeManager.apply_scheme(left_panel, self.app.ui_settings)
         logging.debug("Applied theme to left_panel")
 
         # Center panel for lists
@@ -96,7 +96,7 @@ Homepage: {details.get('homepage', 'N/A')}
         center_panel.grid_columnconfigure(0, weight=1)  # Make lists expand horizontally
         center_panel.grid_rowconfigure(1, weight=1)     # Make to_watch list expand
         center_panel.grid_rowconfigure(3, weight=1)     # Make watched list expand
-        ThemeManager.apply_theme(center_panel, self.app.ui_settings)
+        ColorSchemeManager.apply_scheme(center_panel, self.app.ui_settings)
 
         # Title styling
         title_style = {
@@ -139,15 +139,13 @@ Homepage: {details.get('homepage', 'N/A')}
 
         # Add controls to left panel with app reference
         for i, (text, command) in enumerate([
-            ("Add Movie", lambda: self.app.movie_list_gui.add_movie()),
-            ("Search Movie", lambda: self.app.movie_search_gui.search_movie()),
             ("Mark as Watched", self.app.movie_list_gui.mark_as_watched),
             ("Un-Watch", self.app.movie_list_gui.unwatch_movie),
             ("Remove Movie", self.app.movie_list_gui.remove_movie),
             ("View Details", self.app.show_selected_movie_details),
             ("View Poster", self.app.show_selected_movie_poster),
             ("Settings", self.app.open_settings)
-        ]):
+        ]):  # Removed "Add Movie" and "Search Movie" buttons
             btn = tk.Button(left_panel, text=text, command=command, **button_style)
             btn.pack(pady=5, padx=5, fill=tk.X, expand=True)
             btn.app = self.app
@@ -179,50 +177,62 @@ Homepage: {details.get('homepage', 'N/A')}
         quick_add_frame.grid(row=0, column=0, padx=5, sticky="ew")
         quick_add_frame.grid_columnconfigure(1, weight=1)
 
-        quick_add_label = tk.Label(
-            quick_add_frame, 
-            text="Quick Add:", 
-            fg=self.app.ui_settings["text_color"],
-            bg=self.app.ui_settings["background_color"],
-            font=(self.app.ui_settings["font_family"], self.app.ui_settings["font_size"])
+        # Quick Add button/entry combo
+        quick_add_btn = tk.Button(
+            quick_add_frame,
+            text="Quick Add:",
+            command=lambda: self.app.movie_list_gui.add_movie(),
+            bg=self.app.ui_settings["button_color"],
+            fg=self.app.ui_settings["button_text_color"],
+            font=(self.app.ui_settings["font_family"], self.app.ui_settings["font_size"]),
+            relief=tk.FLAT,
+            padx=10
         )
-        quick_add_label.grid(row=0, column=0, padx=(0, 5))
+        quick_add_btn.grid(row=0, column=0, padx=(0, 5))
+        ColorSchemeManager.setup_hover_animation(quick_add_btn, self.app.ui_settings)
 
         self.app.movie_entry = tk.Entry(quick_add_frame, **entry_style)
         self.app.movie_entry.grid(row=0, column=1, sticky="ew")
-        self.app.movie_entry.app = self.app  # Add app reference
+        self.app.movie_entry.app = self.app
+        self.app.movie_entry.bind('<Return>', lambda e: self.app.movie_list_gui.add_movie())
 
         # TMDb Search frame (right side)
         tmdb_frame = tk.Frame(entry_frame, bg=self.app.ui_settings["background_color"])
         tmdb_frame.grid(row=0, column=1, padx=5, sticky="ew")
         tmdb_frame.grid_columnconfigure(1, weight=1)
 
-        tmdb_label = tk.Label(
-            tmdb_frame, 
-            text="TMDb Search:", 
-            fg=self.app.ui_settings["text_color"],
-            bg=self.app.ui_settings["background_color"],
-            font=(self.app.ui_settings["font_family"], self.app.ui_settings["font_size"])
+        # TMDb Search button/entry combo
+        tmdb_btn = tk.Button(
+            tmdb_frame,
+            text="TMDb Search:",
+            command=lambda: self.app.movie_search_gui.search_movie(),
+            bg=self.app.ui_settings["button_color"],
+            fg=self.app.ui_settings["button_text_color"],
+            font=(self.app.ui_settings["font_family"], self.app.ui_settings["font_size"]),
+            relief=tk.FLAT,
+            padx=10
         )
-        tmdb_label.grid(row=0, column=0, padx=(0, 5))
+        tmdb_btn.grid(row=0, column=0, padx=(0, 5))
+        ColorSchemeManager.setup_hover_animation(tmdb_btn, self.app.ui_settings)
 
         self.app.search_entry = tk.Entry(tmdb_frame, **entry_style)
         self.app.search_entry.grid(row=0, column=1, sticky="ew")
-        self.app.search_entry.app = self.app  # Add app reference
+        self.app.search_entry.app = self.app
+        self.app.search_entry.bind('<Return>', lambda e: self.app.movie_search_gui.search_movie())
 
-        # Add tooltips
-        self.app.movie_entry.bind("<Enter>", lambda e: self.show_tooltip(self.app.movie_entry, "Quickly add a movie without TMDb details"))
-        self.app.search_entry.bind("<Enter>", lambda e: self.show_tooltip(self.app.search_entry, "Search TMDb for movie details and poster"))
-        self.app.movie_entry.bind("<Leave>", self.hide_tooltip)
-        self.app.search_entry.bind("<Leave>", self.hide_tooltip)
+        # Add tooltips (updated to be consistent)
+        quick_add_btn.bind("<Enter>", lambda e: self.show_tooltip(quick_add_btn, "Quickly add a movie without TMDb details"))
+        quick_add_btn.bind("<Leave>", self.hide_tooltip)
+        tmdb_btn.bind("<Enter>", lambda e: self.show_tooltip(tmdb_btn, "Search TMDb for movie details and poster"))
+        tmdb_btn.bind("<Leave>", self.hide_tooltip)
 
-        # Apply theme to everything at once
-        ThemeManager.apply_theme(main_frame, self.app.ui_settings)
+        # Apply color scheme to everything at once
+        ColorSchemeManager.apply_scheme(main_frame, self.app.ui_settings)
 
         # Set up hover animations for all buttons
         for widget in main_frame.winfo_children():
             if isinstance(widget, tk.Button):
-                ThemeManager.setup_hover_animation(widget, self.app.ui_settings)
+                ColorSchemeManager.setup_hover_animation(widget, self.app.ui_settings)
 
     def on_hover_enter(self, button):
         """Lighten button color on hover"""
@@ -233,7 +243,7 @@ Homepage: {details.get('homepage', 'N/A')}
         button.configure(bg=button.app.ui_settings["button_color"])
 
     def open_settings(self):
-        settings_window = ThemeManager.create_themed_toplevel(self.app.root, self.app.ui_settings, "Settings")
+        settings_window = ColorSchemeManager.create_themed_toplevel(self.app.root, self.app.ui_settings, "Settings")
         settings_window.geometry("600x800")  # Larger initial size
         
         # Make the settings window responsive
@@ -252,8 +262,9 @@ Homepage: {details.get('homepage', 'N/A')}
         theme_frame.grid(row=0, column=0, sticky="ew", pady=(0, 20))
         theme_frame.grid_columnconfigure(0, weight=1)
 
-        theme_var = tk.StringVar(value=self.app.ui_settings.get("current_theme", "Dark Purple"))
-        for theme in self.app.settings_manager.get_available_themes():
+        # Updated current_scheme reference and method name
+        theme_var = tk.StringVar(value=self.app.ui_settings.get("current_scheme", "Dark Purple"))
+        for theme in self.app.settings_manager.get_available_schemes():
             rb = tk.Radiobutton(
                 theme_frame, 
                 text=theme,
@@ -307,7 +318,7 @@ Homepage: {details.get('homepage', 'N/A')}
         def save_settings():
             try:
                 new_settings = {
-                    "current_theme": theme_var.get(),
+                    "current_scheme": theme_var.get(),  # Make sure we're using current_scheme consistently
                     "font_size": int(settings_entries["font_size"].get()),
                     "element_spacing": int(settings_entries["element_spacing"].get()),
                     "listbox_height": int(settings_entries["listbox_height"].get()),
@@ -317,7 +328,7 @@ Homepage: {details.get('homepage', 'N/A')}
                 }
                 self.app.settings_manager.update_settings(new_settings)
                 self.app.update_ui()
-                ThemeManager.apply_theme(self.app.root, self.app.settings_manager.ui_settings)
+                ColorSchemeManager.apply_scheme(self.app.root, self.app.settings_manager.ui_settings)
                 settings_window.destroy()
                 messagebox.showinfo("Settings", "Settings have been updated.")
             except ValueError:
@@ -330,30 +341,58 @@ Homepage: {details.get('homepage', 'N/A')}
                               fg=self.app.ui_settings["button_text_color"])
         save_button.grid(row=2, column=0, pady=20, sticky="ew")
 
-        # Apply theme to all widgets
-        ThemeManager.apply_theme(settings_window, self.app.ui_settings)
+        # Apply color scheme to all widgets
+        ColorSchemeManager.apply_scheme(settings_window, self.app.ui_settings)
         self.center_window(settings_window)  # Center the window
 
     def show_tooltip(self, widget, text):
-        x, y, _, _ = widget.bbox("insert")
-        x += widget.winfo_rootx() + 25
-        y += widget.winfo_rooty() + 20
+        # Cancel any existing tooltip hide events
+        if hasattr(widget, "tooltip_after"):
+            widget.after_cancel(widget.tooltip_after)
+            
+        # If tooltip already exists, don't create a new one
+        if hasattr(widget, "tooltip") and widget.tooltip:
+            return
+            
+        # Get widget position
+        x = widget.winfo_rootx() + widget.winfo_width() + 5
+        y = widget.winfo_rooty() + widget.winfo_height() // 2
 
-        # Create a toplevel window with theme
-        tooltip = ThemeManager.create_themed_toplevel(widget, self.app.ui_settings)
+        # Create a toplevel window for tooltip
+        tooltip = tk.Toplevel(widget)
         tooltip.wm_overrideredirect(True)
         tooltip.wm_geometry(f"+{x}+{y}")
         
-        label = tk.Label(tooltip, text=text, justify=tk.LEFT,
-                         relief=tk.SOLID, borderwidth=1,
-                         font=("Helvetica", "10", "normal"))
+        # Configure tooltip with proper colors and style
+        label = tk.Label(
+            tooltip,
+            text=text,
+            justify=tk.LEFT,
+            relief=tk.SOLID,
+            borderwidth=1,
+            padx=5,
+            pady=2,
+            bg=self.app.ui_settings["listbox_bg"],
+            fg=self.app.ui_settings["text_color"],
+            font=(self.app.ui_settings["font_family"], 10, "normal")
+        )
         label.pack()
+
+        # Ensure the tooltip window stays on top
+        tooltip.lift()
+        tooltip.attributes('-topmost', True)
         
-        ThemeManager.apply_theme(tooltip, self.app.ui_settings)
+        # Store the tooltip reference
         widget.tooltip = tooltip
 
     def hide_tooltip(self, event):
         widget = event.widget
         if hasattr(widget, "tooltip"):
+            if hasattr(widget, "tooltip_after"):
+                widget.after_cancel(widget.tooltip_after)
+            widget.tooltip_after = widget.after(100, self._destroy_tooltip, widget)
+
+    def _destroy_tooltip(self, widget):
+        if hasattr(widget, "tooltip") and widget.tooltip:
             widget.tooltip.destroy()
             widget.tooltip = None

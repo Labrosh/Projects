@@ -5,10 +5,10 @@ import os
 import logging
 from models.manager import MovieManager
 from gui.gui_helper import GUIHelper
-from data.settings import SettingsManager  # Updated import path
+from gui.gui_settings import SettingsManager  # Updated import path
 from gui.gui_search import MovieSearchGUI
 from gui.gui_movie_list import MovieListGUI
-from gui.theme import ThemeManager
+from gui.color_scheme import ColorSchemeManager
 
 # Set up logging
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -29,8 +29,8 @@ class MovieApp:
         self.root.title("Movielog - Movie Tracker")
         self.root.geometry(f"{self.ui_settings['window_width']}x{self.ui_settings['window_height']}")
         
-        # Apply theme to root window and force update
-        ThemeManager.apply_theme(self.root, self.ui_settings)
+        # Apply color scheme to root window and force update
+        ColorSchemeManager.apply_scheme(self.root, self.ui_settings)
         self.root.update_idletasks()
         
         self.movie_manager = MovieManager()

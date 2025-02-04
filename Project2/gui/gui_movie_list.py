@@ -3,6 +3,7 @@ from tkinter import messagebox
 import logging
 from models.movie import Movie
 from models.manager import MovieManager
+from gui.color_scheme import ColorSchemeManager
 
 class MovieListGUI:
     def __init__(self, app):

@@ -5,7 +5,7 @@ import requests
 from api.tmdb_api import TMDbAPI
 from models.movie import Movie
 from models.manager import MovieManager
-from gui.theme import ThemeManager
+from gui.color_scheme import ColorSchemeManager
 
 def search_movie(app):
     app.movie_search_gui.search_movie()
@@ -39,7 +39,7 @@ class MovieSearchGUI:
         search_window = tk.Toplevel(self.app.root)
         search_window.title("Search Results")
         search_window.geometry("400x300")
-        ThemeManager.apply_theme(search_window, self.app.ui_settings)
+        ColorSchemeManager.apply_scheme(search_window, self.app.ui_settings)
 
         result_listbox = tk.Listbox(search_window, height=self.app.ui_settings["listbox_height"], width=self.app.ui_settings["listbox_width"])
         result_listbox.pack(pady=self.app.ui_settings["element_spacing"])
@@ -68,7 +68,7 @@ class MovieSearchGUI:
                 if movie['poster_path']:
                     poster_window = tk.Toplevel(self.app.root)
                     poster_window.title(movie['title'])
-                    ThemeManager.apply_theme(poster_window, self.app.ui_settings)
+                    ColorSchemeManager.apply_scheme(poster_window, self.app.ui_settings)
                     poster_image = Image.open(requests.get(movie['poster_path'], stream=True).raw)
                     poster_image = poster_image.resize((300, 450), Image.LANCZOS)
                     poster_photo = ImageTk.PhotoImage(poster_image)

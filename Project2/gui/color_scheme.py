@@ -1,13 +1,13 @@
 import tkinter as tk
 from tkinter import ttk
 
-class Theme:
+class ColorScheme:
     def __init__(self, name, colors):
         self.name = name
         self.colors = colors
 
     def apply(self, widget):
-        """Apply theme to widget and all its children"""
+        """Apply color scheme to widget and all its children"""
         if not widget:
             return
 
@@ -105,7 +105,7 @@ class Theme:
                 scrollbar.grid(row=widget.grid_info()['row'], column=1, sticky="ns")
                 widget.configure(yscrollcommand=scrollbar.set)
 
-        # Apply theme to all children
+        # Apply color scheme to all children
         for child in widget.winfo_children():
             self.apply(child)
 
@@ -123,9 +123,9 @@ class Theme:
         button.bind("<Enter>", on_enter)
         button.bind("<Leave>", on_leave)
 
-class ThemeManager:
-    THEMES = {
-        "Dark Purple": Theme("Dark Purple", {
+class ColorSchemeManager:
+    SCHEMES = {
+        "Dark Purple": ColorScheme("Dark Purple", {
             "background_color": "#1E1E2E",
             "secondary_bg": "#2A2A3C",
             "button_color": "#45458C",
@@ -140,7 +140,7 @@ class ThemeManager:
             "selection_bg": "#565699",
             "selection_fg": "#FFFFFF",
         }),
-        "True Dark": Theme("True Dark", {
+        "True Dark": ColorScheme("True Dark", {
             "background_color": "#0A0A0A",
             "secondary_bg": "#1A1A1A",
             "button_color": "#2A2A2A",
@@ -155,7 +155,7 @@ class ThemeManager:
             "selection_bg": "#404040",
             "selection_fg": "#FFFFFF",
         }),
-        "Cyberpunk": Theme("Cyberpunk", {
+        "Cyberpunk": ColorScheme("Cyberpunk", {
             "background_color": "#0C0C14",
             "secondary_bg": "#1A1A2E",
             "button_color": "#FF0055",
@@ -170,7 +170,7 @@ class ThemeManager:
             "selection_bg": "#FF0055",
             "selection_fg": "#00FFFF",
         }),
-        "Forest": Theme("Forest", {
+        "Forest": ColorScheme("Forest", {
             "background_color": "#1A2F1A",
             "secondary_bg": "#2A472A",
             "button_color": "#3B5E3B",
@@ -185,7 +185,7 @@ class ThemeManager:
             "selection_bg": "#4C704C",
             "selection_fg": "#FFFFFF",
         }),
-        "Ocean": Theme("Ocean", {
+        "Ocean": ColorScheme("Ocean", {
             "background_color": "#0A192F",
             "secondary_bg": "#172A45",
             "button_color": "#2A4365",
@@ -200,7 +200,7 @@ class ThemeManager:
             "selection_bg": "#3B5E8C",
             "selection_fg": "#FFFFFF",
         }),
-        "Sunset": Theme("Sunset", {
+        "Sunset": ColorScheme("Sunset", {
             "background_color": "#2D1B2D",
             "secondary_bg": "#432D3D",
             "button_color": "#FF6B6B",
@@ -218,27 +218,27 @@ class ThemeManager:
     }
 
     @staticmethod
-    def get_theme(theme_name):
-        """Get a Theme object for a specific theme"""
-        return ThemeManager.THEMES.get(theme_name, ThemeManager.THEMES["Dark Purple"])
+    def get_scheme(scheme_name):
+        """Get a ColorScheme object for a specific scheme"""
+        return ColorSchemeManager.SCHEMES.get(scheme_name, ColorSchemeManager.SCHEMES["Dark Purple"])
 
     @staticmethod
-    def get_available_themes():
-        """Get list of available theme names"""
-        return list(ThemeManager.THEMES.keys())
+    def get_available_schemes():
+        """Get list of available color scheme names"""
+        return list(ColorSchemeManager.SCHEMES.keys())
 
     @staticmethod
-    def apply_theme(widget, settings):
-        """Apply the current theme to a widget"""
-        theme = ThemeManager.get_theme(settings["current_theme"])
-        theme.apply(widget)
+    def apply_scheme(widget, settings):
+        """Apply the current color scheme to a widget"""
+        scheme = ColorSchemeManager.get_scheme(settings["current_scheme"])
+        scheme.apply(widget)
 
     @staticmethod
     def create_themed_toplevel(parent, settings, title=""):
         window = tk.Toplevel(parent)
         window.title(title)
-        theme = ThemeManager.get_theme(settings["current_theme"])
-        theme.apply(window)
+        scheme = ColorSchemeManager.get_scheme(settings["current_scheme"])
+        scheme.apply(window)
         
         # Center the window
         window.update_idletasks()
@@ -253,5 +253,5 @@ class ThemeManager:
     @staticmethod
     def setup_hover_animation(button, settings):
         """Create smooth hover animation for buttons"""
-        theme = ThemeManager.get_theme(settings["current_theme"])
-        theme.setup_hover_animation(button)
+        scheme = ColorSchemeManager.get_scheme(settings["current_scheme"])
+        scheme.setup_hover_animation(button)
