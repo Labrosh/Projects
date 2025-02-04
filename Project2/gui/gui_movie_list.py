@@ -65,18 +65,3 @@ class MovieListGUI:
             self.app.load_movies()  # Ensure the movie list is updated after unwatching a movie
         else:
             messagebox.showwarning("Warning", "Please select a movie to un-watch!")
-
-def add_movie(app):
-    app.movie_list_gui.add_movie()
-
-def add_movie_to_watchlist(app, title, release_date="Unknown"):
-    app.movie_list_gui.add_movie_to_watchlist(title, release_date)
-
-def remove_movie(app):
-    app.movie_list_gui.remove_movie()
-
-def mark_as_watched(app):
-    app.movie_list_gui.mark_as_watched()
-
-def unwatch_movie(app):
-    app.movie_list_gui.unwatch_movie()

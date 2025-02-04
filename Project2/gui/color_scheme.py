@@ -239,15 +239,6 @@ class ColorSchemeManager:
         window.title(title)
         scheme = ColorSchemeManager.get_scheme(settings["current_scheme"])
         scheme.apply(window)
-        
-        # Center the window
-        window.update_idletasks()
-        width = window.winfo_width()
-        height = window.winfo_height()
-        x = (window.winfo_screenwidth() // 2) - (width // 2)
-        y = (window.winfo_screenheight() // 2) - (height // 2)
-        window.geometry(f'{width}x{height}+{x}+{y}')
-        
         return window
 
     @staticmethod

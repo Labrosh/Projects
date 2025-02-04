@@ -7,15 +7,17 @@ class SettingsManager:
         self.settings_file = settings_file
         os.makedirs(os.path.dirname(settings_file), exist_ok=True)
         
-        # Base settings without theme colors
+        # Update base settings with conservative defaults
         self.ui_settings = {
             "font_size": 12,
             "element_spacing": 10,
             "listbox_height": 15,
             "listbox_width": 40,
-            "window_width": 1200,
-            "window_height": 600,
-            "button_width": 15,
+            "window_width": 1000,    # More conservative width
+            "window_height": 700,    # More conservative height
+            "minimum_width": 800,    # Prevent window from getting too small
+            "minimum_height": 600,   # Prevent window from getting too small
+            "button_width": 15,    # Consistent button width
             "button_padding": 5,
             "font_family": "Helvetica",
             "current_scheme": "Dark Purple",  # Default scheme
