@@ -1,6 +1,7 @@
 import tkinter as tk
 from gui.color_scheme import ColorSchemeManager
 from gui.widgets.about_dialog import AboutDialog
+from gui.widgets.backup_dialog import BackupDialog
 
 class ControlPanel(tk.Frame):
     def __init__(self, parent, app):
@@ -23,6 +24,7 @@ class ControlPanel(tk.Frame):
             ("View Details", self.app.show_selected_movie_details, "Show detailed information about selected movie (Ctrl+D)"),
             ("View Poster", self.app.show_selected_movie_poster, "Display movie poster in new window (Ctrl+P)"),
             ("Fetch Details", self.app.movie_list_gui.fetch_details, "Search TMDb to get movie details"),
+            ("Backup/Restore", self.show_backup_dialog, "Backup or restore your movie data"),
             ("Settings", self.app.open_settings, "Configure application settings (Ctrl+,)"),
             ("About", self.show_about, "About Movie Tracker and credits")
         ]
@@ -39,3 +41,7 @@ class ControlPanel(tk.Frame):
     def show_about(self):
         """Show the about dialog"""
         AboutDialog(self)
+
+    def show_backup_dialog(self):
+        """Show the backup/restore dialog"""
+        BackupDialog(self, self.app)
