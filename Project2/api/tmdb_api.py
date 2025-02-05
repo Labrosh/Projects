@@ -1,8 +1,10 @@
 import os
 import requests
+import logging
 
 # Constants
-TMDB_API_KEY = os.getenv("TMDB_API_KEY")
+TESTING_OFFLINE = True  # Toggle this for testing
+TMDB_API_KEY = None if TESTING_OFFLINE else os.getenv("TMDB_API_KEY")
 BASE_URL = "https://api.themoviedb.org/3"
 IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 TMDB_ATTRIBUTION = """
@@ -10,9 +12,9 @@ Powered by TMDb
 This product uses the TMDb API but is not endorsed or certified by TMDb.
 """
 
-# Check for API key
+# Use logging instead of print
 if not TMDB_API_KEY:
-    print("Warning: TMDb API key not found. Search functionality will be disabled.")
+    logging.info("No TMDb API key found - starting in offline mode")
 
 class TMDbAPI:
     @staticmethod
@@ -35,7 +37,7 @@ class TMDbAPI:
     def search_movie(query):
         """Search for a movie using the TMDb API and return a list of results."""
         if not TMDB_API_KEY:
-            print("Search is disabled. No API key available.")
+            logging.debug("Search attempted without API key")
             return []  # Return an empty list if no API key is present
 
         url = f"{BASE_URL}/search/movie"
@@ -66,3 +68,5 @@ class TMDbAPI:
             raise ConnectionError("Failed to fetch movie details.")
 
         return response.json()
+        return response.json()
+

@@ -24,14 +24,6 @@ class MovieTrackerApp:
         self.ui_settings = self.settings_manager.ui_settings
         self.movie_manager = MovieManager()
         
-        # Initialize GUI components
-        self.gui_helper = GUIHelper(self)
-        self.movie_list_gui = MovieListGUI(self)
-        self.movie_search_gui = MovieSearchGUI(self.root, self.movie_manager)
-        
-        # Check for API key
-        self.check_api_key()
-        
         # Set window dimensions from settings with increased height
         width = self.ui_settings.get("window_width", 1000)
         height = self.ui_settings.get("window_height", 900)  # Increased from 800 to 900
@@ -43,6 +35,14 @@ class MovieTrackerApp:
         # Set window geometry and constraints
         self.root.geometry(f'{width}x{height}+{x}+{y}')
         self.root.minsize(800, 800)  # Increased minimum height from 700 to 800
+        
+        # Initialize GUI components in correct order
+        self.movie_search_gui = MovieSearchGUI(self.root, self.movie_manager)
+        self.gui_helper = GUIHelper(self)
+        self.movie_list_gui = MovieListGUI(self)
+        
+        # Check for API key
+        self.check_api_key()
         
         # Setup GUI
         self.gui_helper.create_widgets()
@@ -142,6 +142,9 @@ class MovieTrackerApp:
                 TMDbAPI.set_api_key(api_key)
                 self.movie_search_gui.enable_search()
 
-if __name__ == "__main__":
+def main():
     app = MovieTrackerApp()
     app.run()
+
+if __name__ == "__main__":
+    main()

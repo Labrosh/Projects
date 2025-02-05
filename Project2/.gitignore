@@ -1,12 +1,12 @@
-# Sensitive data and user settings
+# User data and sensitive information
 ~/.movielog/
 .env
 gui/settings.json
+data/movies.json
 
-# Application data
+# Generated content
 data/cache/*
 data/posters/*
-data/movies.json
 !data/cache/.gitkeep
 !data/posters/.gitkeep
 
@@ -17,11 +17,36 @@ backups/
 # Python
 __pycache__/
 *.py[cod]
+*.so
+.Python
+
+# Distribution / packaging
 build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
 *.egg-info/
+.installed.cfg
+*.egg
 
 # Virtual environments
+.env
+.venv
+env/
 venv/
-.venv/
+testvenv/
 ENV/
+
+# IDE settings
+.idea/
+.vscode/
+*.swp
+.DS_Store

@@ -1,3 +1,2 @@
-
 #!/bin/bash
-python3 Movielog.py
+python3 movielog.py "$@"  # Added $@ to pass command line arguments

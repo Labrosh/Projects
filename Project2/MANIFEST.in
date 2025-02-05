@@ -6,17 +6,21 @@ include .env.example
 # Dependencies
 include requirements.txt
 
-# Application directories (but not user data)
-recursive-include data/cache/.gitkeep
-recursive-include data/posters/.gitkeep
-recursive-include gui *.json
-recursive-include gui/widgets *.py
+# Include all Python source files
+recursive-include gui *.py
+recursive-include api *.py
+recursive-include models *.py
+recursive-include utils *.py
+
+# Include data directories but not their contents
+recursive-include data *.gitkeep
+
+# Theme and settings
+include gui/*.json
 
 # Exclude unnecessary files
+global-exclude *.pyc
 global-exclude __pycache__
-global-exclude *.py[cod]
 global-exclude *.log
 global-exclude .env
-global-exclude movies.json
-global-exclude data/posters/*
-global-exclude data/cache/*
+global-exclude .git*
