@@ -86,7 +86,7 @@ class ThumbnailListbox(tk.Canvas):
         y = 5
         
         for i, movie in enumerate(self.items):
-            # Create clickable area for the entire item
+            # Background rectangle
             item_area = self.create_rectangle(
                 5, y, self.winfo_width()-5, y+self.item_height-5,
                 fill=self._get_item_color(i),
@@ -94,11 +94,7 @@ class ThumbnailListbox(tk.Canvas):
                 tags=f'item_{i}'
             )
             
-            # Bind click event to this specific item (keep both bindings)
-            self.tag_bind(f'item_{i}', '<Button-1>', 
-                         lambda e, idx=i: self._select_item(idx))
-            
-            # Poster thumbnail
+            # Poster thumbnail and title area
             x_offset = 15
             if hasattr(movie, 'get_poster_path') and movie.get_poster_path():
                 if movie not in self.images:
@@ -112,7 +108,6 @@ class ThumbnailListbox(tk.Canvas):
             text_color = self.selectforeground if i == self.selected_index else self.fg
             title = movie.title if hasattr(movie, 'title') else str(movie)
             
-            # Add rating if available
             rating_text = ""
             if hasattr(movie, 'details') and movie.details:
                 rating = movie.details.get('vote_average')
@@ -120,13 +115,25 @@ class ThumbnailListbox(tk.Canvas):
                     rating_text = f" ★ {rating:.1f}"
             
             self.create_text(
-                x_offset + 55, y + self.item_height//2,
+                x_offset + 55, y + 20,  # Moved up to make room for genres
                 text=title + rating_text,
                 anchor='w',
                 font=self.font,
                 fill=text_color,
                 tags=f'item_{i}'
             )
+            
+            # Add genre tags
+            if hasattr(movie, 'details') and movie.details and 'genres' in movie.details:
+                genre_text = ' • '.join(g['name'] for g in movie.details['genres'][:3])  # Limit to 3 genres
+                self.create_text(
+                    x_offset + 55, y + self.item_height - 20,  # Position below title
+                    text=genre_text,
+                    anchor='w',
+                    font=(self.font[0], int(self.font[1] * 0.9)),  # Slightly smaller font
+                    fill='#666666',  # Subdued color for genres
+                    tags=f'item_{i}'
+                )
             
             y += self.item_height
         
@@ -173,3 +180,17 @@ class ThumbnailListbox(tk.Canvas):
         
         current = self.yview()[0]
         self.yview_moveto(current + (delta / self._total_height))
+
+    def filter_by_genre(self, genre):
+        """Filter items to show only movies with specified genre"""
+        if not genre:  # If no genre specified, show all
+            return self.items
+        
+        filtered = []
+        for movie in self.items:
+            if (hasattr(movie, 'details') and movie.details 
+                and 'genres' in movie.details):
+                genres = [g['name'].lower() for g in movie.details['genres']]
+                if genre.lower() in genres:
+                    filtered.append(movie)
+        return filtered

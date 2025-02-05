@@ -22,6 +22,12 @@ class GUIHelper:
         for item in items:
             listbox.insert(tk.END, item)  # Pass the movie object instead of item.title
         listbox.update()
+        
+        # Update genre menu if we're updating a movie listbox
+        if hasattr(listbox, 'master') and hasattr(listbox.master, 'master'):
+            movie_list_panel = listbox.master.master
+            if hasattr(movie_list_panel, 'update_genre_menu'):
+                movie_list_panel.update_genre_menu()
 
     def show_movie_poster(self, movie):
         poster_path = movie.get_poster_path()

@@ -66,9 +66,62 @@ class MovieListPanel(tk.Frame):
         self.watched_listbox.config(yscrollcommand=watched_scrollbar.set)
         watched_scrollbar.config(command=self.watched_listbox.yview)
 
+        # Add genre filter with proper initialization
+        self.genre_var = tk.StringVar()
+        self.genre_var.set("All Genres")
+        
+        filter_frame = tk.Frame(self)
+        filter_frame.grid(row=4, column=0, pady=5, sticky="ew")
+        
+        tk.Label(filter_frame, text="Filter by genre:", **title_style).pack(side=tk.LEFT, padx=5)
+        self.genre_menu = tk.OptionMenu(filter_frame, self.genre_var, "All Genres")
+        self.genre_menu.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # Initial population of genre menu
+        self.update_genre_menu()
+        
+        # Bind genre selection
+        self.genre_var.trace('w', self._on_genre_filter)
+
         ColorSchemeManager.apply_scheme(self, app.ui_settings)
         self._setup_drag_drop()
 
+    def _on_genre_filter(self, *args):
+        """Handle genre filter selection"""
+        genre = self.genre_var.get()
+        if genre == "All Genres":
+            # Show all movies
+            self.app.gui_helper.update_listbox(self.to_watch_listbox, self.app.movie_manager.movies_to_watch)
+            self.app.gui_helper.update_listbox(self.watched_listbox, self.app.movie_manager.movies_watched)
+        else:
+            # Filter both listboxes by selected genre
+            to_watch_filtered = [movie for movie in self.app.movie_manager.movies_to_watch
+                               if any(g['name'] == genre for g in movie.details.get('genres', []))]
+            watched_filtered = [movie for movie in self.app.movie_manager.movies_watched
+                              if any(g['name'] == genre for g in movie.details.get('genres', []))]
+            
+            self.app.gui_helper.update_listbox(self.to_watch_listbox, to_watch_filtered)
+            self.app.gui_helper.update_listbox(self.watched_listbox, watched_filtered)
+
+    def update_genre_menu(self):
+        """Update genre menu with all available genres"""
+        genres = set()
+        all_movies = self.app.movie_manager.movies_to_watch + self.app.movie_manager.movies_watched
+        
+        for movie in all_movies:
+            if hasattr(movie, 'details') and movie.details:
+                for genre in movie.details.get('genres', []):
+                    genres.add(genre['name'])
+        
+        # Update menu
+        menu = self.genre_menu["menu"]
+        menu.delete(0, "end")
+        menu.add_command(label="All Genres", 
+                        command=lambda: self.genre_var.set("All Genres"))
+        
+        for genre in sorted(genres):
+            menu.add_command(label=genre, 
+                           command=lambda g=genre: self.genre_var.set(g))
 
     def _setup_drag_drop(self):
         # Remove single-click bindings for drag-drop
@@ -85,6 +138,9 @@ class MovieListPanel(tk.Frame):
                 # Update the listboxes
                 self.app.gui_helper.update_listbox(self.to_watch_listbox, self.app.movie_manager.movies_to_watch)
                 self.app.gui_helper.update_listbox(self.watched_listbox, self.app.movie_manager.movies_watched)
+                
+                # Update genre menu after moving movies
+                self.update_genre_menu()
 
         # Bind double-click events
         self.to_watch_listbox.bind('<Double-Button-1>', 
