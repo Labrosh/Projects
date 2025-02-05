@@ -125,6 +125,16 @@ class ColorScheme:
 
 class ColorSchemeManager:
     SCHEMES = {
+        "default": ColorScheme("default", {
+            "background_color": "#ffffff",
+            "font_family": "Helvetica",
+            "font_size": 12,
+            "entry_bg": "#f0f0f0",
+            "entry_fg": "#000000",
+            "text_color": "#000000",
+            "button_color": "#0078d7",
+            "button_text_color": "#ffffff"
+        }),
         "Dark Purple": ColorScheme("Dark Purple", {
             "background_color": "#1E1E2E",
             "secondary_bg": "#2A2A3C",
@@ -219,8 +229,7 @@ class ColorSchemeManager:
 
     @staticmethod
     def get_scheme(scheme_name):
-        """Get a ColorScheme object for a specific scheme"""
-        return ColorSchemeManager.SCHEMES.get(scheme_name, ColorSchemeManager.SCHEMES["Dark Purple"])
+        return ColorSchemeManager.SCHEMES.get(scheme_name, ColorSchemeManager.SCHEMES["default"])
 
     @staticmethod
     def get_available_schemes():
@@ -242,7 +251,16 @@ class ColorSchemeManager:
         return window
 
     @staticmethod
-    def setup_hover_animation(button, settings):
-        """Create smooth hover animation for buttons"""
+    def setup_hover_animation(widget, settings):
         scheme = ColorSchemeManager.get_scheme(settings["current_scheme"])
-        scheme.setup_hover_animation(button)
+        original_bg = widget.cget("background")
+        hover_bg = scheme.colors["button_color"]
+
+        def on_enter(event):
+            widget.config(background=hover_bg)
+
+        def on_leave(event):
+            widget.config(background=original_bg)
+
+        widget.bind("<Enter>", on_enter)
+        widget.bind("<Leave>", on_leave)

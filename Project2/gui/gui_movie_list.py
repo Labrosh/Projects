@@ -12,11 +12,11 @@ class MovieListGUI:
 
     def add_movie(self):
         logging.debug("Adding movie...")
-        movie_title = self.app.movie_entry.get().strip()
+        movie_title = self.app.entry_panel.quick_add_entry.get().strip()
         if movie_title:
             self.add_movie_to_watchlist(movie_title)
             self.app.load_movies()  # Ensure the movie list is updated after adding a movie
-            self.app.movie_entry.delete(0, tk.END)
+            self.app.entry_panel.quick_add_entry.delete(0, tk.END)
         else:
             messagebox.showwarning("Warning", "Movie name cannot be empty!")
 
@@ -69,3 +69,11 @@ class MovieListGUI:
                 self.app.load_movies()  # Ensure the movie list is updated after unwatching a movie
         else:
             messagebox.showwarning("Warning", "Please select a movie to un-watch!")
+
+    def refresh(self):
+        self.app.to_watch_listbox.delete(0, tk.END)
+        for movie in self.movie_manager.movies_to_watch:
+            self.app.to_watch_listbox.insert(tk.END, movie.title)
+        self.app.watched_listbox.delete(0, tk.END)
+        for movie in self.movie_manager.movies_watched:
+            self.app.watched_listbox.insert(tk.END, movie.title)

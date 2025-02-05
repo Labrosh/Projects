@@ -1,194 +1,221 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 from PIL import Image, ImageTk
 import requests
 import logging
+from io import BytesIO
 from api.tmdb_api import TMDbAPI
 from models.movie import Movie
-from models.manager import MovieManager
+from gui.color_scheme import ColorSchemeManager
 
 class MovieSearchGUI:
-    def __init__(self, app):
-        self.app = app
-        self.movie_manager = app.movie_manager
-        self.temp_images = {}  # Cache images temporarily
+    def __init__(self, root, movie_manager):
+        self.root = root
+        self.movie_manager = movie_manager
+        self.search_results = []
+        self.temp_images = {}  # Store thumbnail images while window is open
 
     def search_movie(self, title=None):
-        """Open the search window and perform a movie search"""
-        self.search_window = SearchWindow(self.app.root, self)
-        self.search_window.title("Search Movies")
-        self.search_window.geometry("1000x600")
+        """Search for a movie using provided title"""
+        search_window = tk.Toplevel(self.root)
+        search_window.title("Search Movies")
+        search_window.geometry("1000x600")
+        search_window.transient(self.root)
+        search_window.grab_set()
 
+        # Split into left and right panes
+        left_frame = tk.Frame(search_window)
+        left_frame.pack(side='left', fill='both', expand=True, padx=5, pady=5)
+        
+        right_frame = tk.Frame(search_window)
+        right_frame.pack(side='right', fill='both', padx=5, pady=5)
+
+        # Search controls
+        search_frame = tk.Frame(left_frame)
+        search_frame.pack(fill='x', pady=5)
+
+        search_entry = tk.Entry(search_frame)
+        search_entry.pack(side='left', fill='x', expand=True, padx=5)
+        
+        # Use the provided title or get it from the main search entry
         if title:
-            self.search_window.search_entry.insert(0, title)
-            self.search_window.do_search()
-
-    def _get_thumbnail(self, poster_path, size=(50, 75)):
-        """Retrieve and cache small thumbnail images for search results"""
-        if not poster_path:
-            return None
+            search_entry.insert(0, title)
         
-        try:
-            if poster_path not in self.temp_images:
-                url = f"https://image.tmdb.org/t/p/w92{poster_path}"
-                response = requests.get(url, stream=True)
-                if response.status_code == 200:
-                    img = Image.open(response.raw)
-                    img.thumbnail(size)
-                    self.temp_images[poster_path] = ImageTk.PhotoImage(img)
-            return self.temp_images[poster_path]
-        except Exception as e:
-            logging.error(f"Error loading thumbnail: {e}")
-            return None
+        # Do initial search automatically if we have a title
+        if search_entry.get().strip():
+            search_window.after(100, lambda: perform_search())  # Use search_window instead of self.root
 
-    def _get_preview_image(self, poster_path, size=(200, 300)):
-        """Retrieve and cache large preview images for movie selection"""
-        key = f"preview_{poster_path}"
-        return self._get_thumbnail(poster_path, size=size)
+        # Results area
+        results_frame = tk.Frame(left_frame)
+        results_frame.pack(fill='both', expand=True, pady=5)
 
-class SearchWindow(tk.Toplevel):
-    def __init__(self, parent, search_gui):
-        super().__init__(parent)
-        self.search_gui = search_gui
-        self.title("Search Movies")
-        self.geometry("1000x600")
+        # Create canvas for scrollable results
+        canvas = tk.Canvas(results_frame)
+        scrollbar = ttk.Scrollbar(results_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas)
 
-        # Layout
-        left_panel = tk.Frame(self)
-        left_panel.pack(side='left', fill='both', expand=True, padx=5, pady=5)
-
-        right_panel = tk.Frame(self)
-        right_panel.pack(side='right', fill='both', padx=5, pady=5)
-
-        # Search Entry
-        entry_frame = tk.Frame(left_panel)
-        entry_frame.pack(fill='x', pady=5)
-        
-        self.search_entry = tk.Entry(entry_frame)
-        self.search_entry.pack(side='left', fill='x', expand=True)
-
-        search_button = tk.Button(entry_frame, text="Search", command=self.do_search)
-        search_button.pack(side='right', padx=5)
-
-        # Results Area
-        results_frame = tk.Frame(left_panel)
-        results_frame.pack(fill='both', expand=True)
-
-        self.results_canvas = tk.Canvas(results_frame)
-        scrollbar = tk.Scrollbar(results_frame, orient="vertical", command=self.results_canvas.yview)
-        self.scrollable_frame = tk.Frame(self.results_canvas)
-
-        self.scrollable_frame.bind(
+        scrollable_frame.bind(
             "<Configure>",
-            lambda e: self.results_canvas.configure(scrollregion=self.results_canvas.bbox("all"))
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
 
-        self.results_canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw", width=480)
-        self.results_canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
 
-        scrollbar.pack(side="right", fill="y")
-        self.results_canvas.pack(side="left", fill="both", expand=True)
-
-        # Preview Panel
-        preview_label = tk.Label(right_panel, text="Movie Preview", font=('Helvetica', 12, 'bold'))
+        # Preview area
+        preview_label = tk.Label(right_frame, text="Movie Preview", font=('Helvetica', 12, 'bold'))
         preview_label.pack(pady=5)
+        
+        preview_poster = tk.Label(right_frame)
+        preview_poster.pack(pady=5)
+        
+        preview_info = tk.Text(right_frame, wrap='word', height=10, width=40)
+        preview_info.pack(pady=5, padx=5, fill='both', expand=True)
 
-        self.preview_frame = tk.Frame(right_panel, width=300)
-        self.preview_frame.pack(fill='both', expand=True)
-
-        self.preview_poster = tk.Label(self.preview_frame)
-        self.preview_poster.pack(pady=5)
-
-        self.preview_title = tk.Label(self.preview_frame, wraplength=280, justify='center')
-        self.preview_title.pack(pady=5)
-
-        self.preview_info = tk.Text(self.preview_frame, wrap='word', height=10, width=35)
-        self.preview_info.pack(pady=5, padx=5)
-        self.preview_info.config(state='disabled')
-
-        # Select Button
-        self.select_button = tk.Button(self, text="Select Movie", command=self.select_movie)
-        self.select_button.pack(pady=10)
-
-    def do_search(self):
-        """Perform a search and display results"""
-        for widget in self.scrollable_frame.winfo_children():
-            widget.destroy()
-        self.search_gui.temp_images.clear()
-
-        query = self.search_entry.get().strip()
-        if not query:
-            messagebox.showwarning("Warning", "Please enter a movie name!")
-            return
-
-        try:
-            results = TMDbAPI.search_movie(query)
-            if not results:
-                tk.Label(self.scrollable_frame, text="No results found").pack(pady=10)
-                return
-
-            self.search_results = results  # Store results for selection
-            for movie in results:
-                self.display_movie_result(movie)
-
-        except Exception as e:
-            messagebox.showerror("Error", f"Search failed: {str(e)}")
-
-    def display_movie_result(self, movie):
-        """Create a result entry in the search list"""
-        result_frame = tk.Frame(self.scrollable_frame, relief='groove', borderwidth=1)
-        result_frame.pack(fill='x', pady=2, padx=5)
-        result_frame.grid_columnconfigure(1, weight=1)
-
-        if movie.get('poster_path'):
+        def load_thumbnail(url):
+            """Load a thumbnail from URL"""
+            if not url:
+                return None
             try:
-                image = self.search_gui._get_thumbnail(movie['poster_path'])
-                if image:
-                    tk.Label(result_frame, image=image).grid(row=0, rowspan=2, column=0, padx=5, pady=5)
+                response = requests.get(f"https://image.tmdb.org/t/p/w92{url}")
+                if response.status_code == 200:
+                    img = Image.open(BytesIO(response.content))
+                    img.thumbnail((92, 138))  # Maintain aspect ratio
+                    return ImageTk.PhotoImage(img)
             except Exception as e:
                 logging.error(f"Error loading thumbnail: {e}")
+            return None
 
-        title_text = f"{movie['title']}"
-        if movie.get('release_date'):
-            title_text += f" ({movie['release_date'][:4]})"
-        title_label = tk.Label(result_frame, text=title_text, anchor='w', justify='left')
-        title_label.grid(row=0, column=1, sticky='w', padx=5)
+        def perform_search():
+            # Clear previous results
+            for widget in scrollable_frame.winfo_children():
+                widget.destroy()
+            self.temp_images.clear()
 
-        result_frame.bind('<Button-1>', lambda e, m=movie: self.show_preview(m))
-        result_frame.bind('<Double-Button-1>', lambda e, m=movie: self.select_movie(m))
+            query = search_entry.get().strip()
+            if not query:
+                messagebox.showwarning("Warning", "Please enter a movie title!")
+                return
 
-    def show_preview(self, movie):
-        """Display selected movie details in preview panel"""
-        self.preview_title.config(text=f"{movie['title']}\n({movie.get('release_date', 'N/A')})")
-
-        if movie.get('poster_path'):
             try:
-                image = self.search_gui._get_preview_image(movie['poster_path'])
-                if image:
-                    self.preview_poster.config(image=image)
-                    self.preview_poster.image = image  # Keep reference
+                results = TMDbAPI.search_movie(query)
+                self.search_results = results
+
+                if not results:
+                    tk.Label(scrollable_frame, text="No results found").pack(pady=10)
+                    return
+
+                for movie in results:
+                    # Create frame for result
+                    result_frame = tk.Frame(scrollable_frame, relief='groove', bd=1)
+                    result_frame.pack(fill='x', pady=2, padx=5)
+                    
+                    # Make the frame focusable
+                    result_frame.configure(takefocus=1)
+                    
+                    # Load thumbnail if available
+                    if movie.get('poster_path'):
+                        img = load_thumbnail(movie['poster_path'])
+                        if img:
+                            self.temp_images[movie['id']] = img
+                            tk.Label(result_frame, image=img).pack(side='left', padx=5, pady=5)
+                    
+                    # Add movie info
+                    info_frame = tk.Frame(result_frame)
+                    info_frame.pack(side='left', fill='both', expand=True, padx=5, pady=5)
+                    
+                    title = movie['title']
+                    if movie.get('release_date'):
+                        title += f" ({movie['release_date'][:4]})"
+                    label = tk.Label(info_frame, text=title, anchor='w', justify='left')
+                    label.pack(fill='x')
+                    
+                    # Bind clicks to all widgets in the frame
+                    for widget in [result_frame, info_frame, label]:
+                        widget.bind('<Button-1>', lambda e, m=movie: show_preview(m))
+                        widget.bind('<Double-Button-1>', lambda e, m=movie: select_and_close(m))
+
             except Exception as e:
-                self.preview_poster.config(image='')
-                logging.error(f"Error loading preview: {e}")
+                logging.error(f"Search error: {e}")
+                messagebox.showerror("Error", "Failed to search movies")
 
-        self.preview_info.config(state='normal')
-        self.preview_info.delete(1.0, tk.END)
-        if movie.get('overview'):
-            self.preview_info.insert(tk.END, movie['overview'])
-        self.preview_info.config(state='disabled')
+        def show_preview(movie):
+            preview_info.config(state='normal')
+            preview_info.delete(1.0, tk.END)
+            
+            # Show title and year
+            title = movie['title']
+            if movie.get('release_date'):
+                title += f" ({movie['release_date'][:4]})"
+            preview_info.insert(tk.END, f"{title}\n\n")
+            
+            # Show overview
+            if movie.get('overview'):
+                preview_info.insert(tk.END, movie['overview'])
+            
+            preview_info.config(state='disabled')
+            
+            # Show poster if available
+            if movie.get('poster_path'):
+                img = load_thumbnail(movie['poster_path'])
+                if img:
+                    preview_poster.config(image=img)
+                    preview_poster.image = img
 
-    def select_movie(self, movie=None):
-        """Select a movie and update the main app"""
-        if not movie and self.search_results:
-            movie = self.search_results[0]  # Default to first movie
+        def select_and_close(movie_data):
+            """Handle selection and window closing in one function"""
+            try:
+                # Get full details
+                details = TMDbAPI.get_movie_details(movie_data["id"])
+                if details:
+                    movie_data.update(details)
+                
+                new_movie = Movie(
+                    id=movie_data["id"],
+                    title=movie_data["title"],
+                    release_date=movie_data.get("release_date"),
+                    poster_path=movie_data.get("poster_path"),
+                    details=movie_data
+                )
+                new_movie.save_poster()
+                self.movie_manager.add_movie(new_movie)
+                
+                # Refresh the movie list display
+                self.root.event_generate("<<RefreshMovieList>>")
+                
+                search_window.destroy()
+                return True
 
-        if not movie:
-            return
+            except Exception as e:
+                logging.error(f"Error selecting movie: {e}")
+                messagebox.showerror("Error", "Failed to get movie details")
+            return False
 
-        try:
-            details = TMDbAPI.get_movie_details(movie["id"])
-            movie.update(details)
-            self.search_gui.app.movie_manager.add_movie(Movie(**movie))
-            self.destroy()
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to select movie: {str(e)}")
+        def refresh_movie_list():
+            # Implement this method to refresh the movie list in the main GUI
+            pass
+
+        # Pack scrolling components
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Add search button
+        tk.Button(search_frame, text="Search", command=perform_search).pack(side='right', padx=5)
+        
+        # Update the Select Movie button to use select_and_close with the current selection
+        select_button = tk.Button(search_window, text="Select Movie", 
+                                command=lambda: next(
+                                    (select_and_close(m) for m in self.search_results 
+                                     if m.get('title') == preview_info.get("1.0", "end-3c").split("\n")[0].rsplit(" (", 1)[0]),
+                                    None))
+        select_button.pack(pady=10)
+        
+        # Bind enter key to search
+        search_entry.bind('<Return>', lambda e: perform_search())
+        
+        # Do initial search if title provided
+        if title:
+            perform_search()
+
+        # Clean up on window close
+        search_window.protocol("WM_DELETE_WINDOW", lambda: [search_window.destroy(), self.temp_images.clear()])

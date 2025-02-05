@@ -50,37 +50,25 @@ class GUIHelper:
         # Configure root window style
         ColorSchemeManager.apply_scheme(self.app.root, self.app.ui_settings)
         
-        # Make the root window responsive
-        self.app.root.grid_rowconfigure(0, weight=1)
-        self.app.root.grid_columnconfigure(0, weight=1)
-        
         # Create main frame
         main_frame = tk.Frame(self.app.root)
-        main_frame.grid(row=0, column=0, sticky="nsew", padx=20, pady=20)
-        main_frame.grid_columnconfigure(1, weight=1)
-        main_frame.grid_rowconfigure(0, weight=1)
-        ColorSchemeManager.apply_scheme(main_frame, self.app.ui_settings)
-
-        # Create panels
-        control_panel = ControlPanel(main_frame, self.app)
-        movie_list_panel = MovieListPanel(main_frame, self.app)
-        entry_panel = EntryPanel(main_frame, self.app)
-
-        # Setup tooltips for entry panel buttons
-        entry_panel.quick_add_btn.bind("<Enter>", 
-            lambda e: self.tooltip_manager.show_tooltip(entry_panel.quick_add_btn, 
-            "Quickly add a movie without TMDb details"))
-        entry_panel.quick_add_btn.bind("<Leave>", self.tooltip_manager.hide_tooltip)
+        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
         
-        entry_panel.tmdb_btn.bind("<Enter>", 
-            lambda e: self.tooltip_manager.show_tooltip(entry_panel.tmdb_btn, 
-            "Search TMDb for movie details and poster"))
-        entry_panel.tmdb_btn.bind("<Leave>", self.tooltip_manager.hide_tooltip)
-
-        # Layout panels
-        control_panel.grid(row=0, column=0, sticky="ns", padx=10)
-        movie_list_panel.grid(row=0, column=1, sticky="nsew")
-        entry_panel.grid(row=1, column=1, sticky="ew", pady=10)
+        # Create layout frames
+        content_frame = tk.Frame(main_frame)
+        content_frame.pack(fill='both', expand=True)
+        
+        # Create panels in correct order
+        control_panel = ControlPanel(content_frame, self.app)
+        movie_list_panel = MovieListPanel(content_frame, self.app)
+        
+        # Layout main content
+        control_panel.pack(side='left', fill='y', padx=10)
+        movie_list_panel.pack(side='left', fill='both', expand=True)
+        
+        # Create and pack entry panel at bottom
+        entry_panel = EntryPanel(main_frame, self.app.movie_search_gui, self.app.movie_list_gui, self.app.ui_settings)
+        entry_panel.pack(side='bottom', fill='x', pady=10)
 
         # Store references needed by app
         self.app.to_watch_listbox = movie_list_panel.to_watch_listbox
@@ -101,7 +89,7 @@ class GUIHelper:
             bg=self.app.ui_settings["secondary_bg"],
             fg=self.app.ui_settings["text_color"]
         )
-        self.status_bar.grid(row=1, column=0, sticky="ew")
+        self.status_bar.pack(side='bottom', fill='x')
 
     def show_status(self, message, timeout=3000):
         """Show a message in the status bar that disappears after timeout ms"""

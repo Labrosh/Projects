@@ -1,15 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox
-from PIL import Image, ImageTk
-import os
-import logging
 from models.manager import MovieManager
 from gui.gui_helper import GUIHelper
-from gui.gui_settings import SettingsManager  # Updated import path
+from gui.gui_settings import SettingsManager
 from gui.gui_search import MovieSearchGUI
 from gui.gui_movie_list import MovieListGUI
 from gui.color_scheme import ColorSchemeManager
-import platform
+from gui.widgets.entry_panel import EntryPanel  # Ensure this import is included
+import logging
 
 # Set up logging
 logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -27,7 +25,7 @@ class MovieTrackerApp:
         # Initialize GUI components
         self.gui_helper = GUIHelper(self)
         self.movie_list_gui = MovieListGUI(self)
-        self.movie_search_gui = MovieSearchGUI(self)
+        self.movie_search_gui = MovieSearchGUI(self.root, self.movie_manager)
         
         # Force a reasonable initial size and position
         self.root.withdraw()  # Hide window initially
@@ -100,6 +98,22 @@ class MovieTrackerApp:
     def open_settings(self):
         """Open the settings window"""
         self.gui_helper.open_settings()
+
+    def get_ui_settings(self):
+        return {
+            "background_color": "#ffffff",
+            "font_family": "Helvetica",
+            "font_size": 12,
+            "entry_bg": "#f0f0f0",
+            "entry_fg": "#000000",
+            "text_color": "#000000",
+            "button_color": "#0078d7",
+            "button_text_color": "#ffffff",
+            "current_scheme": "default"  # Add this line to include the current scheme
+        }
+
+    def refresh_movie_list(self):
+        self.movie_list_gui.refresh()
 
 if __name__ == "__main__":
     app = MovieTrackerApp()
