@@ -3,6 +3,7 @@ from tkinter import messagebox
 import logging
 from models.movie import Movie
 from models.manager import MovieManager
+from gui.color_scheme import ColorSchemeManager
 
 class MovieListGUI:
     def __init__(self, app):
@@ -26,20 +27,24 @@ class MovieListGUI:
         self.app.load_movies()  # Ensure the movie list is updated after adding a movie to the watchlist
 
     def remove_movie(self):
-        logging.debug("Removing movie...")
-        selected_to_watch = self.app.to_watch_listbox.curselection()
-        selected_watched = self.app.watched_listbox.curselection()
-
-        if selected_to_watch:
-            movie = self.movie_manager.movies_to_watch[selected_to_watch[0]]
-            self.movie_manager.remove_movie(movie)
-            self.app.load_movies()  # Ensure the movie list is updated after removing a movie
-        elif selected_watched:
-            movie = self.movie_manager.movies_watched[selected_watched[0]]
-            self.movie_manager.remove_movie(movie)
-            self.app.load_movies()  # Ensure the movie list is updated after removing a movie
-        else:
-            messagebox.showwarning("Warning", "Please select a movie to remove!")
+        """Remove the selected movie from either list"""
+        selected_movie = self.app.get_selected_movie()
+        if not selected_movie:
+            messagebox.showwarning("Warning", "Please select a movie to remove")
+            return
+            
+        if messagebox.askyesno("Confirm", f"Remove '{selected_movie.title}' from your lists?"):
+            try:
+                self.app.movie_manager.remove_movie(selected_movie)
+                # Update both listboxes
+                self.app.gui_helper.update_listbox(self.app.to_watch_listbox, 
+                                                 self.app.movie_manager.movies_to_watch)
+                self.app.gui_helper.update_listbox(self.app.watched_listbox, 
+                                                 self.app.movie_manager.movies_watched)
+                self.app.gui_helper.show_status(f"Removed {selected_movie.title}")
+            except Exception as e:
+                logging.error(f"Error removing movie: {e}")
+                messagebox.showerror("Error", f"Failed to remove movie: {str(e)}")
 
     def mark_as_watched(self):
         logging.debug("Marking movie as watched...")
@@ -57,25 +62,10 @@ class MovieListGUI:
         logging.debug("Unwatching movie...")
         selected = self.app.watched_listbox.curselection()
         if selected:
-            movie = self.movie_manager.movies_watched[selected[0]]
-            self.movie_manager.movies_watched.remove(movie)
-            self.movie_manager.movies_to_watch.append(movie)
-            self.movie_manager.save_data()
-            self.app.load_movies()  # Ensure the movie list is updated after unwatching a movie
+            movie_title = self.app.watched_listbox.get(selected[0])
+            movie = next((m for m in self.movie_manager.movies_watched if m.title == movie_title), None)
+            if movie:
+                self.movie_manager.unwatch_movie(movie)
+                self.app.load_movies()  # Ensure the movie list is updated after unwatching a movie
         else:
             messagebox.showwarning("Warning", "Please select a movie to un-watch!")
-
-def add_movie(app):
-    app.movie_list_gui.add_movie()
-
-def add_movie_to_watchlist(app, title, release_date="Unknown"):
-    app.movie_list_gui.add_movie_to_watchlist(title, release_date)
-
-def remove_movie(app):
-    app.movie_list_gui.remove_movie()
-
-def mark_as_watched(app):
-    app.movie_list_gui.mark_as_watched()
-
-def unwatch_movie(app):
-    app.movie_list_gui.unwatch_movie()
