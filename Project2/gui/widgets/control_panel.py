@@ -1,5 +1,6 @@
 import tkinter as tk
 from gui.color_scheme import ColorSchemeManager
+from gui.widgets.about_dialog import AboutDialog
 
 class ControlPanel(tk.Frame):
     def __init__(self, parent, app):
@@ -22,7 +23,8 @@ class ControlPanel(tk.Frame):
             ("View Details", self.app.show_selected_movie_details, "Show detailed information about selected movie (Ctrl+D)"),
             ("View Poster", self.app.show_selected_movie_poster, "Display movie poster in new window (Ctrl+P)"),
             ("Fetch Details", self.app.movie_list_gui.fetch_details, "Search TMDb to get movie details"),
-            ("Settings", self.app.open_settings, "Configure application settings (Ctrl+,)")
+            ("Settings", self.app.open_settings, "Configure application settings (Ctrl+,)"),
+            ("About", self.show_about, "About Movie Tracker and credits")
         ]
 
         for text, command, tooltip in buttons:
@@ -33,3 +35,7 @@ class ControlPanel(tk.Frame):
             btn.bind("<Leave>", app.gui_helper.tooltip_manager.hide_tooltip)
 
         ColorSchemeManager.apply_scheme(self, app.ui_settings)
+
+    def show_about(self):
+        """Show the about dialog"""
+        AboutDialog(self)
