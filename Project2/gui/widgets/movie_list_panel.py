@@ -1,6 +1,9 @@
 import tkinter as tk
+from tkinter import messagebox  # Add this import
+import logging  # Add this import
 from gui.color_scheme import ColorSchemeManager
 from gui.widgets.thumbnail_listbox import ThumbnailListbox  # Import the new widget
+from gui.widgets.rating_dialog import RatingDialog
 
 class MovieListPanel(tk.Frame):
     def __init__(self, parent, app):
@@ -85,11 +88,12 @@ class MovieListPanel(tk.Frame):
 
         ColorSchemeManager.apply_scheme(self, app.ui_settings)
         self._setup_drag_drop()
+        self._setup_context_menus()  # Add this line to initialize context menus
 
     def _on_genre_filter(self, *args):
         """Handle genre filter selection"""
         genre = self.genre_var.get()
-        if genre == "All Genres":
+        if (genre == "All Genres"):
             # Show all movies
             self.app.gui_helper.update_listbox(self.to_watch_listbox, self.app.movie_manager.movies_to_watch)
             self.app.gui_helper.update_listbox(self.watched_listbox, self.app.movie_manager.movies_watched)
@@ -163,16 +167,78 @@ class MovieListPanel(tk.Frame):
         self.context_menu = tk.Menu(self, tearoff=0)
         self.context_menu.add_command(label="View Details", command=self.app.show_selected_movie_details)
         self.context_menu.add_command(label="View Poster", command=self.app.show_selected_movie_poster)
+        self.context_menu.add_command(label="Rate Movie", command=self._rate_selected_movie)
+        self.context_menu.add_command(label="Clear Ratings", command=self._clear_ratings)  # Add this line
         self.context_menu.add_separator()
         self.context_menu.add_command(label="Mark as Watched", command=self.app.movie_list_gui.mark_as_watched)
         self.context_menu.add_command(label="Remove Movie", command=self.app.movie_list_gui.remove_movie)
 
         def show_context_menu(event, listbox):
-            item = listbox.identify_row(event.y)
-            if item:
-                listbox.selection_clear(0, tk.END)
-                listbox.selection_set(item)
+            # Calculate which item was clicked using canvas coordinates
+            y = listbox.canvasy(event.y)
+            clicked_index = int(y // listbox.item_height)
+            
+            if 0 <= clicked_index < len(listbox.items):
+                listbox.selected_index = clicked_index
+                listbox._redraw()
+                listbox.event_generate('<<ListboxSelect>>')
                 self.context_menu.post(event.x_root, event.y_root)
 
         self.to_watch_listbox.bind("<Button-3>", lambda e: show_context_menu(e, self.to_watch_listbox))
         self.watched_listbox.bind("<Button-3>", lambda e: show_context_menu(e, self.watched_listbox))
+
+    def _rate_selected_movie(self):
+        """Show rating dialog for selected movie"""
+        selected_movie = self.app.get_selected_movie()
+        
+        if not selected_movie:
+            messagebox.showwarning("Warning", "Please select a movie to rate")
+            return
+            
+        try:
+            dialog = RatingDialog(self, selected_movie)
+            self.wait_window(dialog)
+            
+            if dialog.result:
+                # Add each rating from the dialog
+                for rating in dialog.result:
+                    selected_movie.add_rating(rating)
+                
+                # Refresh lists with movies from manager
+                self.app.gui_helper.update_listbox(self.to_watch_listbox, self.app.movie_manager.movies_to_watch)
+                self.app.gui_helper.update_listbox(self.watched_listbox, self.app.movie_manager.movies_watched)
+                self.app.movie_manager.save_data()
+                self.app.gui_helper.show_status(
+                    f"Added {len(dialog.result)} ratings for {selected_movie.title}"
+                )
+                
+        except Exception as e:
+            logging.error(f"Error rating movie: {e}")
+            messagebox.showerror("Error", f"Failed to add ratings: {str(e)}")
+
+    def _clear_ratings(self):
+        """Clear all ratings for the selected movie"""
+        selected_movie = self.app.get_selected_movie()
+        
+        if not selected_movie:
+            messagebox.showwarning("Warning", "Please select a movie to clear ratings")
+            return
+            
+        if messagebox.askyesno("Confirm", f"Clear all ratings for {selected_movie.title}?"):
+            try:
+                selected_movie.clear_ratings()
+                # Refresh lists
+                self.app.gui_helper.update_listbox(self.to_watch_listbox, self.app.movie_manager.movies_to_watch)
+                self.app.gui_helper.update_listbox(self.watched_listbox, self.app.movie_manager.movies_watched)
+                self.app.movie_manager.save_data()
+                self.app.gui_helper.show_status(f"Cleared ratings for {selected_movie.title}")
+            except Exception as e:
+                logging.error(f"Error clearing ratings: {e}")
+                messagebox.showerror("Error", f"Failed to clear ratings: {str(e)}")
+
+    def _redraw_current_list(self):
+        """Redraw the current listbox to show updated ratings"""
+        current_genre = self.genre_var.get()
+        self._on_genre_filter()
+        self._on_genre_filter()
+

@@ -12,6 +12,7 @@ class Movie:
         self.release_date = release_date
         self.poster_path = poster_path
         self.details = details
+        self.user_ratings = []  # List of user ratings
 
     def __repr__(self):
         return f"<Movie {self.title}>"
@@ -56,4 +57,23 @@ class Movie:
             "release_date": self.release_date,
             "poster_path": self.poster_path,
             "details": self.details,
+            "user_ratings": self.user_ratings  # Add this line to save ratings
         }
+
+    def add_rating(self, rating, user="default"):
+        """Add a user rating (1-10)"""
+        if 1 <= rating <= 10:
+            self.user_ratings.append({"user": user, "rating": rating})
+            return True
+        return False
+
+    def get_average_user_rating(self):
+        """Get average user rating"""
+        if not self.user_ratings:
+            return None
+        return sum(r["rating"] for r in self.user_ratings) / len(self.user_ratings)
+
+    def clear_ratings(self):
+        """Clear all user ratings"""
+        self.user_ratings = []
+        return True

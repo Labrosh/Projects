@@ -110,12 +110,16 @@ class ThumbnailListbox(tk.Canvas):
             
             rating_text = ""
             if hasattr(movie, 'details') and movie.details:
-                rating = movie.details.get('vote_average')
-                if rating:
-                    rating_text = f" ★ {rating:.1f}"
+                tmdb_rating = movie.details.get('vote_average')
+                if tmdb_rating:
+                    rating_text = f" ★ {tmdb_rating:.1f}"
+            
+            user_rating = movie.get_average_user_rating() if hasattr(movie, 'get_average_user_rating') else None
+            if user_rating:
+                rating_text += f" (Our Rating: {user_rating:.1f})"
             
             self.create_text(
-                x_offset + 55, y + 20,  # Moved up to make room for genres
+                x_offset + 55, y + 20,
                 text=title + rating_text,
                 anchor='w',
                 font=self.font,

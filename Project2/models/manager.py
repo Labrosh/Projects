@@ -34,7 +34,12 @@ class MovieManager:
             self.movies_to_watch.append(movie)
             self.save_data()
 
+    def save_movies(self):
+        """Save movies to JSON file (alias for save_data for consistency)"""
+        return self.save_data()
+
     def save_data(self):
+        """Save movies to JSON file"""
         try:
             data = {
                 "to_watch": [movie.to_dict() for movie in self.movies_to_watch],
@@ -43,16 +48,41 @@ class MovieManager:
             os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
             with open(self.data_file, "w") as file:
                 json.dump(data, file)
+            return True
         except Exception as e:
             logging.error(f"Failed to save data: {e}")
-            raise
+            return False
 
     def load_data(self):
         try:
             with open(self.data_file, "r") as file:
                 data = json.load(file)
-                self.movies_to_watch = [Movie(**movie) for movie in data.get("to_watch", [])]
-                self.movies_watched = [Movie(**movie) for movie in data.get("watched", [])]
+                
+                # Handle to_watch movies
+                for movie_data in data.get("to_watch", []):
+                    user_ratings = movie_data.pop('user_ratings', [])  # Remove and store ratings
+                    movie = Movie(
+                        id=movie_data['id'],
+                        title=movie_data['title'],
+                        release_date=movie_data['release_date'],
+                        poster_path=movie_data['poster_path'],
+                        details=movie_data['details']
+                    )
+                    movie.user_ratings = user_ratings  # Set ratings after creation
+                    self.movies_to_watch.append(movie)
+                
+                # Handle watched movies
+                for movie_data in data.get("watched", []):
+                    user_ratings = movie_data.pop('user_ratings', [])  # Remove and store ratings
+                    movie = Movie(
+                        id=movie_data['id'],
+                        title=movie_data['title'],
+                        release_date=movie_data['release_date'],
+                        poster_path=movie_data['poster_path'],
+                        details=movie_data['details']
+                    )
+                    movie.user_ratings = user_ratings  # Set ratings after creation
+                    self.movies_watched.append(movie)
         except FileNotFoundError:
             pass
 
