@@ -236,3 +236,13 @@ class MovieSearchGUI:
 
         # Clean up on window close
         search_window.protocol("WM_DELETE_WINDOW", lambda: [search_window.destroy(), self.temp_images.clear()])
+
+    def disable_search(self):
+        """Disable search functionality for offline mode"""
+        self.search_button.config(state='disabled')
+        self.search_entry.config(state='disabled')
+        
+    def enable_search(self):
+        """Enable search functionality"""
+        self.search_button.config(state='normal')
+        self.search_entry.config(state='normal')

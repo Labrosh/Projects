@@ -7,6 +7,8 @@ from gui.gui_search import MovieSearchGUI
 from gui.gui_movie_list import MovieListGUI
 from gui.color_scheme import ColorSchemeManager
 from gui.widgets.entry_panel import EntryPanel  # Ensure this import is included
+from gui.widgets.api_key_dialog import APIKeyDialog
+from api.tmdb_api import TMDbAPI
 import logging
 
 # Set up logging
@@ -26,6 +28,9 @@ class MovieTrackerApp:
         self.gui_helper = GUIHelper(self)
         self.movie_list_gui = MovieListGUI(self)
         self.movie_search_gui = MovieSearchGUI(self.root, self.movie_manager)
+        
+        # Check for API key
+        self.check_api_key()
         
         # Set window dimensions from settings with increased height
         width = self.ui_settings.get("window_width", 1000)
@@ -113,6 +118,29 @@ class MovieTrackerApp:
     def refresh_movie_list(self):
         """Refresh the movie list display"""
         self.load_movies()
+
+    def check_api_key(self):
+        """Check for API key and prompt if needed"""
+        if not self.settings_manager.get_api_key() and not self.settings_manager.is_offline_mode():
+            dialog = APIKeyDialog(self.root, self.settings_manager)
+            self.root.wait_window(dialog)
+            
+            if dialog.result == "api_key":
+                TMDbAPI.set_api_key(self.settings_manager.get_api_key())
+            elif dialog.result == "offline":
+                self.movie_search_gui.disable_search()
+
+    def toggle_offline_mode(self, enable=True):
+        """Toggle offline mode"""
+        if enable:
+            self.settings_manager.enable_offline_mode()
+            self.movie_search_gui.disable_search()
+        else:
+            api_key = self.settings_manager.get_api_key()
+            if api_key and TMDbAPI.validate_api_key(api_key):
+                self.settings_manager.set_api_key(api_key)
+                TMDbAPI.set_api_key(api_key)
+                self.movie_search_gui.enable_search()
 
 if __name__ == "__main__":
     app = MovieTrackerApp()

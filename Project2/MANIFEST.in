@@ -1,0 +1,22 @@
+# Documentation
+include README.md
+include LICENSE
+include .env.example
+
+# Dependencies
+include requirements.txt
+
+# Application directories (but not user data)
+recursive-include data/cache/.gitkeep
+recursive-include data/posters/.gitkeep
+recursive-include gui *.json
+recursive-include gui/widgets *.py
+
+# Exclude unnecessary files
+global-exclude __pycache__
+global-exclude *.py[cod]
+global-exclude *.log
+global-exclude .env
+global-exclude movies.json
+global-exclude data/posters/*
+global-exclude data/cache/*

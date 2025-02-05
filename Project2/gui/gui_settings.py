@@ -4,8 +4,8 @@ from gui.color_scheme import ColorSchemeManager  # This import is correct now
 
 class SettingsManager:
     def __init__(self, settings_file="gui/settings.json"):  # Updated path to be in gui folder
-        self.settings_file = settings_file
-        os.makedirs(os.path.dirname(settings_file), exist_ok=True)
+        self.settings_file = os.path.join(os.path.expanduser("~"), ".movielog", "settings.json")
+        os.makedirs(os.path.dirname(self.settings_file), exist_ok=True)
         
         # Update base settings with fixed window dimensions
         self.ui_settings = {
@@ -20,6 +20,8 @@ class SettingsManager:
             "button_width": 15,
             "button_padding": 5,
             "font_family": "Helvetica",
+            "offline_mode": False,
+            "api_key": None,
             "current_scheme": "Dark Purple",
         }
         self.load_settings()
@@ -60,3 +62,18 @@ class SettingsManager:
 
     def get_available_schemes(self):
         return ColorSchemeManager.get_available_schemes()
+
+    def set_api_key(self, api_key):
+        self.ui_settings["api_key"] = api_key
+        self.ui_settings["offline_mode"] = False
+        self.save_settings_to_file()
+
+    def enable_offline_mode(self):
+        self.ui_settings["offline_mode"] = True
+        self.save_settings_to_file()
+
+    def is_offline_mode(self):
+        return self.ui_settings.get("offline_mode", False)
+
+    def get_api_key(self):
+        return self.ui_settings.get("api_key")

@@ -1,7 +1,27 @@
-venv/
-tests/
-movies.json
-*.json
-posters/
+# Sensitive data and user settings
+~/.movielog/
+.env
+gui/settings.json
+
+# Application data
+data/cache/*
+data/posters/*
+data/movies.json
+!data/cache/.gitkeep
+!data/posters/.gitkeep
+
+# Logs and backups
 *.log
-*.zip
+backups/
+
+# Python
+__pycache__/
+*.py[cod]
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+ENV/

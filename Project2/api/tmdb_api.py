@@ -16,6 +16,22 @@ if not TMDB_API_KEY:
 
 class TMDbAPI:
     @staticmethod
+    def set_api_key(key):
+        global TMDB_API_KEY
+        TMDB_API_KEY = key
+
+    @staticmethod
+    def validate_api_key(key):
+        """Test if an API key is valid"""
+        url = f"{BASE_URL}/authentication/token/new"
+        params = {"api_key": key}
+        try:
+            response = requests.get(url, params=params)
+            return response.status_code == 200
+        except:
+            return False
+
+    @staticmethod
     def search_movie(query):
         """Search for a movie using the TMDb API and return a list of results."""
         if not TMDB_API_KEY:
