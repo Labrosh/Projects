@@ -21,6 +21,7 @@ class ControlPanel(tk.Frame):
             ("Remove Movie", self.app.movie_list_gui.remove_movie, "Remove selected movie from any list (Ctrl+R)"),
             ("View Details", self.app.show_selected_movie_details, "Show detailed information about selected movie (Ctrl+D)"),
             ("View Poster", self.app.show_selected_movie_poster, "Display movie poster in new window (Ctrl+P)"),
+            ("Fetch Details", self.app.movie_list_gui.fetch_details, "Search TMDb to get movie details"),
             ("Settings", self.app.open_settings, "Configure application settings (Ctrl+,)")
         ]
 
