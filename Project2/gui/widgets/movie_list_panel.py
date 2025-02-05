@@ -72,22 +72,36 @@ class MovieListPanel(tk.Frame):
     def _setup_drag_drop(self):
         def start_drag(event, listbox):
             listbox.drag_start = event.y
+            listbox.drag_source = listbox
             
         def do_drag(event, from_list, to_list):
             if hasattr(from_list, 'drag_start'):
                 sel = from_list.curselection()
                 if sel:
-                    idx = from_list.nearest(event.y)
-                    if idx != sel[0]:
-                        text = from_list.get(sel)
-                        from_list.delete(sel)
-                        to_list.insert(idx, text)
-                        
+                    # Get the selected movie title
+                    movie_title = from_list.get(sel[0])
+                    
+                    # Find the corresponding movie object
+                    if from_list == self.to_watch_listbox:
+                        movie = next((m for m in self.app.movie_manager.movies_to_watch 
+                                    if m.title == movie_title), None)
+                        if movie:
+                            self.app.movie_list_gui.mark_as_watched()
+                    else:
+                        movie = next((m for m in self.app.movie_manager.movies_watched 
+                                    if m.title == movie_title), None)
+                        if movie:
+                            self.app.movie_list_gui.unwatch_movie()
+                            
+                    # Clear drag state
+                    from_list.drag_start = None
+                    from_list.drag_source = None
+
         # Enable drag between lists
         self.to_watch_listbox.bind('<Button-1>', lambda e: start_drag(e, self.to_watch_listbox))
         self.watched_listbox.bind('<Button-1>', lambda e: start_drag(e, self.watched_listbox))
-        self.to_watch_listbox.bind('<B1-Motion>', lambda e: do_drag(e, self.to_watch_listbox, self.watched_listbox))
-        self.watched_listbox.bind('<B1-Motion>', lambda e: do_drag(e, self.watched_listbox, self.to_watch_listbox))
+        self.to_watch_listbox.bind('<ButtonRelease-1>', lambda e: do_drag(e, self.to_watch_listbox, self.watched_listbox))
+        self.watched_listbox.bind('<ButtonRelease-1>', lambda e: do_drag(e, self.watched_listbox, self.to_watch_listbox))
 
     def _setup_context_menus(self):
         self.context_menu = tk.Menu(self, tearoff=0)

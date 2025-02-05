@@ -36,9 +36,7 @@ class MovieSearchGUI:
             messagebox.showerror("Error", "Failed to connect to TMDb.")
 
     def display_search_results(self, results):
-        search_window = tk.Toplevel(self.app.root)
-        search_window.title("Search Results")
-        search_window.geometry("400x300")
+        search_window = SearchWindow(self.app.root)
         ColorSchemeManager.apply_scheme(search_window, self.app.ui_settings)
 
         result_listbox = tk.Listbox(search_window, height=self.app.ui_settings["listbox_height"], width=self.app.ui_settings["listbox_width"])
@@ -80,3 +78,9 @@ class MovieSearchGUI:
 
         add_result_button = tk.Button(search_window, text="Add Selected Movie", command=add_selected_movie)
         add_result_button.pack(pady=self.app.ui_settings["element_spacing"])
+
+class SearchWindow(tk.Toplevel):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.title("Search Movies")
+        self.geometry("600x400")  # Adjust the window size

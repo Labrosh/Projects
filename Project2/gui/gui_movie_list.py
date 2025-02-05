@@ -58,10 +58,10 @@ class MovieListGUI:
         logging.debug("Unwatching movie...")
         selected = self.app.watched_listbox.curselection()
         if selected:
-            movie = self.movie_manager.movies_watched[selected[0]]
-            self.movie_manager.movies_watched.remove(movie)
-            self.movie_manager.movies_to_watch.append(movie)
-            self.movie_manager.save_data()
-            self.app.load_movies()  # Ensure the movie list is updated after unwatching a movie
+            movie_title = self.app.watched_listbox.get(selected[0])
+            movie = next((m for m in self.movie_manager.movies_watched if m.title == movie_title), None)
+            if movie:
+                self.movie_manager.unwatch_movie(movie)
+                self.app.load_movies()  # Ensure the movie list is updated after unwatching a movie
         else:
             messagebox.showwarning("Warning", "Please select a movie to un-watch!")
