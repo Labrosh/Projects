@@ -13,13 +13,18 @@ class MovieManager:
         self.load_data()
 
     def add_movie(self, movie):
-        if not any(m.id == movie.id for m in self.movies_to_watch + self.movies_watched):
+        if not any(m.title.lower() == movie.title.lower() for m in self.movies_to_watch + self.movies_watched):
             self.movies_to_watch.append(movie)
             self.save_data()
+            return True
+        return False
 
     def remove_movie(self, movie):
-        self.movies_to_watch = [m for m in self.movies_to_watch if m.id != movie.id]
-        self.movies_watched = [m for m in self.movies_watched if m.id != movie.id]
+        """Remove a specific movie from either list"""
+        if movie in self.movies_to_watch:
+            self.movies_to_watch.remove(movie)
+        elif movie in self.movies_watched:
+            self.movies_watched.remove(movie)
         self.save_data()
 
     def mark_as_watched(self, movie):
@@ -47,44 +52,52 @@ class MovieManager:
             }
             os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
             with open(self.data_file, "w") as file:
-                json.dump(data, file)
+                json.dump(data, file, indent=2)
             return True
         except Exception as e:
             logging.error(f"Failed to save data: {e}")
-            return False
+            raise
 
     def load_data(self):
         try:
-            with open(self.data_file, "r") as file:
-                data = json.load(file)
+            if os.path.exists(self.data_file):
+                with open(self.data_file, 'r') as f:
+                    data = json.load(f)
+                    
+                    # Handle to_watch movies
+                    self.movies_to_watch = []
+                    for movie_data in data.get("to_watch", []):
+                        user_ratings = movie_data.pop('user_ratings', [])
+                        needs_details = movie_data.pop('needs_details', True)
+                        movie = Movie(
+                            id=movie_data.get('id'),
+                            title=movie_data['title'],
+                            release_date=movie_data.get('release_date'),
+                            poster_path=movie_data.get('poster_path'),
+                            details=movie_data.get('details')
+                        )
+                        movie.user_ratings = user_ratings
+                        movie.needs_details = needs_details
+                        self.movies_to_watch.append(movie)
+                    
+                    # Handle watched movies (similar process)
+                    for movie_data in data.get("watched", []):
+                        user_ratings = movie_data.pop('user_ratings', [])  # Remove and store ratings
+                        movie = Movie(
+                            id=movie_data['id'],
+                            title=movie_data['title'],
+                            release_date=movie_data['release_date'],
+                            poster_path=movie_data['poster_path'],
+                            details=movie_data['details']
+                        )
+                        movie.user_ratings = user_ratings  # Set ratings after creation
+                        self.movies_watched.append(movie)
                 
-                # Handle to_watch movies
-                for movie_data in data.get("to_watch", []):
-                    user_ratings = movie_data.pop('user_ratings', [])  # Remove and store ratings
-                    movie = Movie(
-                        id=movie_data['id'],
-                        title=movie_data['title'],
-                        release_date=movie_data['release_date'],
-                        poster_path=movie_data['poster_path'],
-                        details=movie_data['details']
-                    )
-                    movie.user_ratings = user_ratings  # Set ratings after creation
-                    self.movies_to_watch.append(movie)
-                
-                # Handle watched movies
-                for movie_data in data.get("watched", []):
-                    user_ratings = movie_data.pop('user_ratings', [])  # Remove and store ratings
-                    movie = Movie(
-                        id=movie_data['id'],
-                        title=movie_data['title'],
-                        release_date=movie_data['release_date'],
-                        poster_path=movie_data['poster_path'],
-                        details=movie_data['details']
-                    )
-                    movie.user_ratings = user_ratings  # Set ratings after creation
-                    self.movies_watched.append(movie)
-        except FileNotFoundError:
-            pass
+                return True
+        except Exception as e:
+            logging.error(f"Error loading movies: {e}")
+            raise
+        return False
 
     def get_movie_details(self, movie_id):
         for movie in self.movies_to_watch + self.movies_watched:

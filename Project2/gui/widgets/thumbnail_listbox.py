@@ -118,6 +118,10 @@ class ThumbnailListbox(tk.Canvas):
             if user_rating:
                 rating_text += f" (Our Rating: {user_rating:.1f})"
             
+            # Add indicator for movies needing details
+            if hasattr(movie, 'needs_details') and movie.needs_details:
+                title += " (⚠️ Needs Details)"
+            
             self.create_text(
                 x_offset + 55, y + 20,
                 text=title + rating_text,

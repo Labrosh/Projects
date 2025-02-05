@@ -6,13 +6,14 @@ import logging
 from api.tmdb_api import BASE_URL, TMDB_API_KEY
 
 class Movie:
-    def __init__(self, id, title, release_date, poster_path=None, details=None):
+    def __init__(self, id=None, title=None, release_date=None, poster_path=None, details=None):
         self.id = id
         self.title = title
         self.release_date = release_date
         self.poster_path = poster_path
         self.details = details
         self.user_ratings = []  # List of user ratings
+        self.needs_details = id is None  # True if movie was quick-added
 
     def __repr__(self):
         return f"<Movie {self.title}>"
@@ -57,7 +58,8 @@ class Movie:
             "release_date": self.release_date,
             "poster_path": self.poster_path,
             "details": self.details,
-            "user_ratings": self.user_ratings  # Add this line to save ratings
+            "user_ratings": self.user_ratings,  # Add this line to save ratings
+            "needs_details": self.needs_details
         }
 
     def add_rating(self, rating, user="default"):

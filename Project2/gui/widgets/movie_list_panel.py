@@ -1,9 +1,11 @@
 import tkinter as tk
-from tkinter import messagebox  # Add this import
-import logging  # Add this import
+from tkinter import messagebox
+import logging
 from gui.color_scheme import ColorSchemeManager
-from gui.widgets.thumbnail_listbox import ThumbnailListbox  # Import the new widget
+from gui.widgets.thumbnail_listbox import ThumbnailListbox
 from gui.widgets.rating_dialog import RatingDialog
+from gui.widgets.bulk_import_dialog import BulkImportDialog
+from models.movie import Movie  # Add this import
 
 class MovieListPanel(tk.Frame):
     def __init__(self, parent, app):
@@ -79,6 +81,12 @@ class MovieListPanel(tk.Frame):
         tk.Label(filter_frame, text="Filter by genre:", **title_style).pack(side=tk.LEFT, padx=5)
         self.genre_menu = tk.OptionMenu(filter_frame, self.genre_var, "All Genres")
         self.genre_menu.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        
+        # Add bulk import button
+        button_frame = tk.Frame(filter_frame)
+        button_frame.pack(side=tk.RIGHT, padx=5)
+        tk.Button(button_frame, text="Bulk Import", 
+                 command=self._show_bulk_import).pack(side=tk.RIGHT)
         
         # Initial population of genre menu
         self.update_genre_menu()
@@ -167,6 +175,7 @@ class MovieListPanel(tk.Frame):
         self.context_menu = tk.Menu(self, tearoff=0)
         self.context_menu.add_command(label="View Details", command=self.app.show_selected_movie_details)
         self.context_menu.add_command(label="View Poster", command=self.app.show_selected_movie_poster)
+        self.context_menu.add_command(label="Fetch Details", command=self._fetch_details)  # Add this
         self.context_menu.add_command(label="Rate Movie", command=self._rate_selected_movie)
         self.context_menu.add_command(label="Clear Ratings", command=self._clear_ratings)  # Add this line
         self.context_menu.add_separator()
@@ -235,6 +244,64 @@ class MovieListPanel(tk.Frame):
             except Exception as e:
                 logging.error(f"Error clearing ratings: {e}")
                 messagebox.showerror("Error", f"Failed to clear ratings: {str(e)}")
+
+    def _show_bulk_import(self):
+        """Show bulk import dialog"""
+        dialog = BulkImportDialog(self)
+        self.wait_window(dialog)
+        
+        if dialog.result:
+            added_count = 0
+            skipped = []
+            
+            # Process each movie title
+            for title in dialog.result:
+                if title and title.strip():
+                    clean_title = title.strip()
+                    try:
+                        # Create and add the movie
+                        movie = Movie(title=clean_title)
+                        movie.needs_details = True
+                        if self.app.movie_manager.add_movie(movie):
+                            added_count += 1
+                        else:
+                            skipped.append(title)
+                    except Exception as e:
+                        logging.error(f"Failed to add movie {title}: {e}")
+                        skipped.append(f"{title} (Error)")
+            
+            # Update display
+            self.app.movie_manager.save_data()
+            self.app.gui_helper.update_listbox(self.to_watch_listbox, 
+                                             self.app.movie_manager.movies_to_watch)
+            
+            # Show status
+            status = f"Added {added_count} movies"
+            if skipped:
+                status += f" (skipped {len(skipped)} duplicates)"
+            self.app.gui_helper.show_status(status)
+            
+            if skipped:
+                messagebox.showinfo("Import Results", 
+                    f"Added {added_count} movies\n\n" + 
+                    f"Skipped {len(skipped)} movies:\n" + 
+                    "\n".join(skipped[:5]) + 
+                    ("\n..." if len(skipped) > 5 else ""))
+
+    def _fetch_details(self):
+        """Fetch TMDB details for selected movie"""
+        selected_movie = self.app.get_selected_movie()
+        if selected_movie and selected_movie.needs_details:
+            # Show search dialog to find correct movie
+            try:
+                self.app.movie_search_gui.search_movie(selected_movie.title)
+                self.app.gui_helper.update_listbox(self.to_watch_listbox, 
+                                                 self.app.movie_manager.movies_to_watch)
+                self.app.gui_helper.update_listbox(self.watched_listbox, 
+                                                 self.app.movie_manager.movies_watched)
+            except Exception as e:
+                logging.error(f"Error fetching details: {e}")
+                messagebox.showerror("Error", "Failed to fetch movie details")
 
     def _redraw_current_list(self):
         """Redraw the current listbox to show updated ratings"""
