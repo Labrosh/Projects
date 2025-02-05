@@ -53,15 +53,21 @@ class EntryPanel(tk.Frame):
         self.tmdb_btn = self._create_button(
             frame, 
             "TMDb Search:", 
-            lambda: self.movie_search_gui.search_movie()
+            lambda: self._perform_search()
         )
         self.tmdb_btn.grid(row=0, column=0, padx=(0, 5))
 
         self.search_entry = tk.Entry(frame, **entry_style)
         self.search_entry.grid(row=0, column=1, sticky="ew")
-        self.search_entry.bind('<Return>', lambda e: self.movie_search_gui.search_movie())
+        self.search_entry.bind('<Return>', lambda e: self._perform_search())
 
         return frame
+
+    def _perform_search(self):
+        search_text = self.search_entry.get().strip()
+        if search_text:
+            self.movie_search_gui.search_movie(search_text)
+            self.search_entry.delete(0, tk.END)
 
     def _create_button(self, parent, text, command):
         btn = tk.Button(

@@ -30,9 +30,9 @@ class MovieTrackerApp:
         # Force a reasonable initial size and position
         self.root.withdraw()  # Hide window initially
         
-        # Set reasonable fixed dimensions
+        # Set reasonable fixed dimensions - increase height to accommodate search bars
         width = 1000
-        height = 700
+        height = 800  # Increased from 700 to 800
         
         # Get screen dimensions
         screen_width = self.root.winfo_screenwidth()
@@ -52,7 +52,10 @@ class MovieTrackerApp:
         # Show window only after everything is set up
         self.root.deiconify()
         self.root.update_idletasks()
-        self.root.minsize(800, 600)
+        self.root.minsize(800, 700)  # Increased minimum height from 600 to 700
+
+        # Bind refresh event
+        self.root.bind("<<RefreshMovieList>>", lambda e: self.refresh_movie_list())
 
     def run(self):
         self.root.mainloop()
@@ -113,7 +116,8 @@ class MovieTrackerApp:
         }
 
     def refresh_movie_list(self):
-        self.movie_list_gui.refresh()
+        """Refresh the movie list display"""
+        self.load_movies()
 
 if __name__ == "__main__":
     app = MovieTrackerApp()

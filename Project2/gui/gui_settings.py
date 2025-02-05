@@ -14,9 +14,9 @@ class SettingsManager:
             "listbox_height": 15,
             "listbox_width": 40,
             "window_width": 1000,    # More conservative width
-            "window_height": 700,    # More conservative height
+            "window_height": 800,    # Increased from 700 to 800
             "minimum_width": 800,    # Prevent window from getting too small
-            "minimum_height": 600,   # Prevent window from getting too small
+            "minimum_height": 700,   # Increased from 600 to 700
             "button_width": 15,    # Consistent button width
             "button_padding": 5,
             "font_family": "Helvetica",

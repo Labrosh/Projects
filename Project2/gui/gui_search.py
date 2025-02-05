@@ -37,13 +37,10 @@ class MovieSearchGUI:
         search_entry = tk.Entry(search_frame)
         search_entry.pack(side='left', fill='x', expand=True, padx=5)
         
-        # Use the provided title or get it from the main search entry
-        if title:
-            search_entry.insert(0, title)
-        
-        # Do initial search automatically if we have a title
-        if search_entry.get().strip():
-            search_window.after(100, lambda: perform_search())  # Use search_window instead of self.root
+        # Use the provided title for search
+        if title and title.strip():
+            search_entry.insert(0, title.strip())
+            search_window.after(100, lambda: perform_search())
 
         # Results area
         results_frame = tk.Frame(left_frame)
@@ -180,8 +177,8 @@ class MovieSearchGUI:
                 new_movie.save_poster()
                 self.movie_manager.add_movie(new_movie)
                 
-                # Refresh the movie list display
-                self.root.event_generate("<<RefreshMovieList>>")
+                # Force a refresh of the main window's movie list
+                self.root.after(100, lambda: self.root.event_generate("<<RefreshMovieList>>"))
                 
                 search_window.destroy()
                 return True
