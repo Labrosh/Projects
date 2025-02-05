@@ -127,13 +127,20 @@ class ColorSchemeManager:
     SCHEMES = {
         "default": ColorScheme("default", {
             "background_color": "#ffffff",
-            "font_family": "Helvetica",
-            "font_size": 12,
+            "secondary_bg": "#f0f0f0",
+            "button_color": "#0078d7",
+            "button_hover_color": "#2b90e5",
+            "button_text_color": "#ffffff",
+            "text_color": "#000000",
+            "title_color": "#0078d7",
+            "listbox_bg": "#ffffff",
+            "listbox_fg": "#000000",
             "entry_bg": "#f0f0f0",
             "entry_fg": "#000000",
-            "text_color": "#000000",
-            "button_color": "#0078d7",
-            "button_text_color": "#ffffff"
+            "selection_bg": "#0078d7",
+            "selection_fg": "#ffffff",
+            "font_family": "Helvetica",
+            "font_size": 12
         }),
         "Dark Purple": ColorScheme("Dark Purple", {
             "background_color": "#1E1E2E",

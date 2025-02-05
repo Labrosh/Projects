@@ -7,20 +7,20 @@ class SettingsManager:
         self.settings_file = settings_file
         os.makedirs(os.path.dirname(settings_file), exist_ok=True)
         
-        # Update base settings with conservative defaults
+        # Update base settings with fixed window dimensions
         self.ui_settings = {
             "font_size": 12,
             "element_spacing": 10,
             "listbox_height": 15,
             "listbox_width": 40,
-            "window_width": 1000,    # More conservative width
-            "window_height": 800,    # Increased from 700 to 800
-            "minimum_width": 800,    # Prevent window from getting too small
-            "minimum_height": 700,   # Increased from 600 to 700
-            "button_width": 15,    # Consistent button width
+            "window_width": 1000,
+            "window_height": 900,    # Increased from 800 to 900
+            "minimum_width": 800,
+            "minimum_height": 800,   # Increased from 700 to 800
+            "button_width": 15,
             "button_padding": 5,
             "font_family": "Helvetica",
-            "current_scheme": "Dark Purple",  # Default scheme
+            "current_scheme": "Dark Purple",
         }
         self.load_settings()
         # Add color scheme colors to settings
@@ -41,11 +41,21 @@ class SettingsManager:
             json.dump(self.ui_settings, file)
 
     def update_settings(self, new_settings):
+        # Preserve window dimensions when updating settings
+        current_width = self.ui_settings.get("window_width", 1000)
+        current_height = self.ui_settings.get("window_height", 800)
+        
         # Update settings
         self.ui_settings.update(new_settings)
+        
+        # Restore window dimensions
+        self.ui_settings["window_width"] = current_width
+        self.ui_settings["window_height"] = current_height
+        
         # Update color scheme colors if scheme changed
         if "current_scheme" in new_settings:
             self.ui_settings.update(ColorSchemeManager.get_scheme(new_settings["current_scheme"]).colors)
+        
         self.save_settings_to_file()
 
     def get_available_schemes(self):

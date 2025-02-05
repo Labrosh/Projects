@@ -19,18 +19,26 @@ class Movie:
         return f"<Movie {self.title}>"
 
     def save_poster(self):
-        if self.poster_path and self.poster_path.startswith("http"):
+        """Save poster to local storage and update poster_path"""
+        if self.poster_path and self.poster_path.startswith('/'):  # Check if it's a TMDb path
             try:
                 os.makedirs("data/posters", exist_ok=True)
-                poster_filename = f"{self.title.replace(' ', '_')}.jpg"
+                poster_filename = f"{self.id}_{self.title.replace(' ', '_')}.jpg"
                 poster_file = os.path.join("data/posters", poster_filename)
-                response = requests.get(self.poster_path, stream=True)
+                
+                # Construct full TMDb image URL
+                full_url = f"https://image.tmdb.org/t/p/w500{self.poster_path}"
+                
+                response = requests.get(full_url, stream=True)
                 if response.status_code == 200:
                     with open(poster_file, "wb") as file:
                         for chunk in response.iter_content(1024):
                             file.write(chunk)
-                    self.poster_path = poster_filename
+                    self.poster_path = poster_filename  # Update to local path
+                    logging.debug(f"Saved poster for {self.title} to {poster_file}")
                     return poster_file
+                else:
+                    logging.error(f"Failed to download poster: {response.status_code}")
             except Exception as e:
                 logging.error(f"Failed to save poster: {e}")
         return None

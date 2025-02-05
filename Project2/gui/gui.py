@@ -27,33 +27,22 @@ class MovieTrackerApp:
         self.movie_list_gui = MovieListGUI(self)
         self.movie_search_gui = MovieSearchGUI(self.root, self.movie_manager)
         
-        # Force a reasonable initial size and position
-        self.root.withdraw()  # Hide window initially
+        # Set window dimensions from settings with increased height
+        width = self.ui_settings.get("window_width", 1000)
+        height = self.ui_settings.get("window_height", 900)  # Increased from 800 to 900
         
-        # Set reasonable fixed dimensions - increase height to accommodate search bars
-        width = 1000
-        height = 800  # Increased from 700 to 800
+        # Calculate center position
+        x = (self.root.winfo_screenwidth() - width) // 2
+        y = (self.root.winfo_screenheight() - height) // 2
         
-        # Get screen dimensions
-        screen_width = self.root.winfo_screenwidth()
-        screen_height = self.root.winfo_screenheight()
-        
-        # Calculate position
-        x = (screen_width - width) // 2
-        y = (screen_height - height) // 2
-        
-        # Set exact geometry before showing window
+        # Set window geometry and constraints
         self.root.geometry(f'{width}x{height}+{x}+{y}')
+        self.root.minsize(800, 800)  # Increased minimum height from 700 to 800
         
         # Setup GUI
         self.gui_helper.create_widgets()
         self.load_movies()
         
-        # Show window only after everything is set up
-        self.root.deiconify()
-        self.root.update_idletasks()
-        self.root.minsize(800, 700)  # Increased minimum height from 600 to 700
-
         # Bind refresh event
         self.root.bind("<<RefreshMovieList>>", lambda e: self.refresh_movie_list())
 
@@ -66,12 +55,18 @@ class MovieTrackerApp:
         self.gui_helper.show_status("Movies loaded successfully")
 
     def update_ui(self):
-        # Recreate widgets with new settings
+        # Store current window dimensions before recreating widgets
+        current_width = self.root.winfo_width()
+        current_height = self.root.winfo_height()
+        
+        # Update UI
         for widget in self.root.winfo_children():
             widget.destroy()
         self.gui_helper.create_widgets()
         self.load_movies()
-        self.root.geometry(f"{self.ui_settings['window_width']}x{self.ui_settings['window_height']}")
+        
+        # Restore window dimensions
+        self.root.geometry(f"{current_width}x{current_height}")
 
     def show_selected_movie_details(self):
         if self.root.winfo_exists():  # Check if the root window exists
