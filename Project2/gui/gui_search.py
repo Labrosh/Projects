@@ -15,7 +15,7 @@ class MovieSearchGUI:
         self.search_results = []
         self.temp_images = {}  # Store thumbnail images while window is open
 
-    def search_movie(self, title=None):
+    def search_movie(self, title=None, update_existing=False, existing_movie=None):
         """Search for a movie using provided title"""
         search_window = tk.Toplevel(self.root)
         search_window.title("Search Movies")
@@ -162,11 +162,18 @@ class MovieSearchGUI:
         def select_and_close(movie_data):
             """Handle selection and window closing in one function"""
             try:
+                logging.debug(f"Selecting movie: {movie_data['title']}")
+                
                 # Get full details
                 details = TMDbAPI.get_movie_details(movie_data["id"])
-                if details:
-                    movie_data.update(details)
+                if not details:
+                    logging.error("Failed to get movie details from TMDb")
+                    messagebox.showerror("Error", "Failed to get movie details from TMDb")
+                    return False
+
+                movie_data.update(details)
                 
+                # Create new movie with details
                 new_movie = Movie(
                     id=movie_data["id"],
                     title=movie_data["title"],
@@ -175,18 +182,31 @@ class MovieSearchGUI:
                     details=movie_data
                 )
                 new_movie.save_poster()
-                self.movie_manager.add_movie(new_movie)
+                new_movie.needs_details = False
                 
-                # Force a refresh of the main window's movie list
-                self.root.after(100, lambda: self.root.event_generate("<<RefreshMovieList>>"))
-                
-                search_window.destroy()
-                return True
+                success = False
+                if update_existing and existing_movie:
+                    logging.debug(f"Updating existing movie: {existing_movie.title} -> {new_movie.title}")
+                    new_movie.user_ratings = existing_movie.user_ratings
+                    success = self.movie_manager.update_movie(existing_movie, new_movie)
+                else:
+                    logging.debug(f"Adding new movie: {new_movie.title}")
+                    success = self.movie_manager.add_movie(new_movie)
+                    
+                if success:
+                    logging.debug("Successfully updated/added movie")
+                    self.root.event_generate("<<RefreshMovieList>>")
+                    search_window.destroy()
+                    return True
+                else:
+                    logging.error("Failed to update/add movie")
+                    messagebox.showerror("Error", "Failed to update/add movie to your list")
+                    return False
 
             except Exception as e:
                 logging.error(f"Error selecting movie: {e}")
-                messagebox.showerror("Error", "Failed to get movie details")
-            return False
+                messagebox.showerror("Error", f"Failed to process movie: {str(e)}")
+                return False
 
         def refresh_movie_list():
             # Implement this method to refresh the movie list in the main GUI

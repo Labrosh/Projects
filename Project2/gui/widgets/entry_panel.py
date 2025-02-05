@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox  # Add this import
 from gui.color_scheme import ColorSchemeManager
 
 class EntryPanel(tk.Frame):
@@ -36,15 +37,24 @@ class EntryPanel(tk.Frame):
         self.quick_add_btn = self._create_button(
             frame, 
             "Quick Add:", 
-            lambda: self.movie_list_gui.add_movie()
+            lambda: self._handle_quick_add()
         )
         self.quick_add_btn.grid(row=0, column=0, padx=(0, 5))
 
         self.quick_add_entry = tk.Entry(frame, **entry_style)
         self.quick_add_entry.grid(row=0, column=1, sticky="ew")
-        self.quick_add_entry.bind('<Return>', lambda e: self.movie_list_gui.add_movie())
+        self.quick_add_entry.bind('<Return>', lambda e: self._handle_quick_add())
 
         return frame
+
+    def _handle_quick_add(self):
+        """Handle quick add functionality"""
+        title = self.quick_add_entry.get().strip()
+        if title:
+            self.movie_list_gui.add_movie_to_watchlist(title)
+            self.quick_add_entry.delete(0, tk.END)
+        else:
+            messagebox.showwarning("Warning", "Movie name cannot be empty!")
 
     def _create_tmdb_frame(self, entry_style):
         frame = tk.Frame(self, bg=self.ui_settings["background_color"])
@@ -68,6 +78,8 @@ class EntryPanel(tk.Frame):
         if search_text:
             self.movie_search_gui.search_movie(search_text)
             self.search_entry.delete(0, tk.END)
+        else:
+            messagebox.showwarning("Warning", "Please enter a movie title!")
 
     def _create_button(self, parent, text, command):
         btn = tk.Button(

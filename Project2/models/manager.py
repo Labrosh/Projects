@@ -13,11 +13,28 @@ class MovieManager:
         self.load_data()
 
     def add_movie(self, movie):
-        if not any(m.title.lower() == movie.title.lower() for m in self.movies_to_watch + self.movies_watched):
-            self.movies_to_watch.append(movie)
-            self.save_data()
-            return True
-        return False
+        """Add a movie or update if it already exists"""
+        # Check if movie exists in either list
+        for existing in self.movies_to_watch + self.movies_watched:
+            if existing.title.lower() == movie.title.lower():
+                # If we're adding a movie with details to replace one without details
+                if existing.needs_details and not movie.needs_details:
+                    logging.debug(f"Replacing movie without details: {existing.title}")
+                    # Remove from appropriate list
+                    if existing in self.movies_to_watch:
+                        self.movies_to_watch.remove(existing)
+                    else:
+                        self.movies_watched.remove(existing)
+                    # Add new version to to_watch
+                    self.movies_to_watch.append(movie)
+                    self.save_data()
+                    return True
+                return False
+        
+        # If movie doesn't exist, add it normally
+        self.movies_to_watch.append(movie)
+        self.save_data()
+        return True
 
     def remove_movie(self, movie):
         """Remove a specific movie from either list"""
@@ -104,3 +121,40 @@ class MovieManager:
             if movie.id == movie_id:
                 return movie.details
         return None
+
+    def update_movie(self, old_movie, new_movie):
+        """Update an existing movie with new details"""
+        logging.debug(f"Attempting to update movie: {old_movie.title} -> {new_movie.title}")
+        
+        # First try to find by exact object
+        if old_movie in self.movies_to_watch:
+            idx = self.movies_to_watch.index(old_movie)
+            self.movies_to_watch[idx] = new_movie
+            logging.debug("Updated movie in to_watch list (exact match)")
+            self.save_movies()
+            return True
+            
+        if old_movie in self.movies_watched:
+            idx = self.movies_watched.index(old_movie)
+            self.movies_watched[idx] = new_movie
+            logging.debug("Updated movie in watched list (exact match)")
+            self.save_movies()
+            return True
+            
+        # If exact match fails, try matching by title
+        for i, movie in enumerate(self.movies_to_watch):
+            if movie.title.lower() == old_movie.title.lower():
+                self.movies_to_watch[i] = new_movie
+                logging.debug("Updated movie in to_watch list (title match)")
+                self.save_movies()
+                return True
+                
+        for i, movie in enumerate(self.movies_watched):
+            if movie.title.lower() == old_movie.title.lower():
+                self.movies_watched[i] = new_movie
+                logging.debug("Updated movie in watched list (title match)")
+                self.save_movies()
+                return True
+                
+        logging.error(f"Failed to find movie to update: {old_movie.title}")
+        return False

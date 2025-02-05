@@ -10,21 +10,15 @@ class MovieListGUI:
         self.app = app
         self.movie_manager = app.movie_manager  # Use the app's MovieManager instance
 
-    def add_movie(self):
-        logging.debug("Adding movie...")
-        movie_title = self.app.entry_panel.quick_add_entry.get().strip()
-        if movie_title:
-            self.add_movie_to_watchlist(movie_title)
-            self.app.load_movies()  # Ensure the movie list is updated after adding a movie
-            self.app.entry_panel.quick_add_entry.delete(0, tk.END)
-        else:
-            messagebox.showwarning("Warning", "Movie name cannot be empty!")
-
     def add_movie_to_watchlist(self, title, release_date="Unknown"):
+        """Add a movie to the watchlist"""
         logging.debug(f"Adding movie to watchlist: {title}")
         movie = Movie(None, title, release_date)
-        self.movie_manager.add_movie(movie)
-        self.app.load_movies()  # Ensure the movie list is updated after adding a movie to the watchlist
+        if self.movie_manager.add_movie(movie):
+            self.app.load_movies()  # Refresh the display
+            self.app.gui_helper.show_status(f"Added '{title}' to watchlist")
+        else:
+            messagebox.showwarning("Warning", "Movie already exists in your lists!")
 
     def remove_movie(self):
         """Remove the selected movie from either list"""
@@ -77,3 +71,24 @@ class MovieListGUI:
         self.app.watched_listbox.delete(0, tk.END)
         for movie in self.movie_manager.movies_watched:
             self.app.watched_listbox.insert(tk.END, movie.title)
+
+    def fetch_details(self):
+        """Fetch details from TMDb for a quick-added movie"""
+        selected_movie = self.app.get_selected_movie()
+        if not selected_movie:
+            messagebox.showwarning("Warning", "Please select a movie to fetch details!")
+            return
+            
+        if not selected_movie.needs_details:
+            messagebox.showinfo("Info", "This movie already has details!")
+            return
+
+        logging.debug(f"Fetching details for movie: {selected_movie.title}")
+        # Call search_movie with update flag and existing movie
+        self.app.movie_search_gui.search_movie(
+            title=selected_movie.title,
+            update_existing=True,
+            existing_movie=selected_movie
+        )
+        # Force refresh of the movie list
+        self.app.load_movies()
