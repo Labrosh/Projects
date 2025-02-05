@@ -1,5 +1,6 @@
 import tkinter as tk
 from gui.color_scheme import ColorSchemeManager
+from gui.widgets.thumbnail_listbox import ThumbnailListbox  # Import the new widget
 
 class MovieListPanel(tk.Frame):
     def __init__(self, parent, app):
@@ -40,7 +41,7 @@ class MovieListPanel(tk.Frame):
         to_watch_frame.grid_columnconfigure(0, weight=1)
         to_watch_frame.grid_rowconfigure(0, weight=1)
 
-        self.to_watch_listbox = tk.Listbox(to_watch_frame, **listbox_style)
+        self.to_watch_listbox = ThumbnailListbox(to_watch_frame, **listbox_style)  # Use ThumbnailListbox
         self.to_watch_listbox.grid(row=0, column=0, sticky="nsew")
         to_watch_scrollbar = tk.Scrollbar(to_watch_frame, orient="vertical")
         to_watch_scrollbar.grid(row=0, column=1, sticky="ns")
@@ -57,7 +58,7 @@ class MovieListPanel(tk.Frame):
         watched_frame.grid_columnconfigure(0, weight=1)
         watched_frame.grid_rowconfigure(0, weight=1)
 
-        self.watched_listbox = tk.Listbox(watched_frame, **listbox_style)
+        self.watched_listbox = ThumbnailListbox(watched_frame, **listbox_style)  # Use ThumbnailListbox
         self.watched_listbox.grid(row=0, column=0, sticky="nsew")
         watched_scrollbar = tk.Scrollbar(watched_frame, orient="vertical")
         watched_scrollbar.grid(row=0, column=1, sticky="ns")
@@ -70,38 +71,37 @@ class MovieListPanel(tk.Frame):
 
 
     def _setup_drag_drop(self):
-        def start_drag(event, listbox):
-            listbox.drag_start = event.y
-            listbox.drag_source = listbox
-            
-        def do_drag(event, from_list, to_list):
-            if hasattr(from_list, 'drag_start'):
-                sel = from_list.curselection()
-                if sel:
-                    # Get the selected movie title
-                    movie_title = from_list.get(sel[0])
-                    
-                    # Find the corresponding movie object
-                    if from_list == self.to_watch_listbox:
-                        movie = next((m for m in self.app.movie_manager.movies_to_watch 
-                                    if m.title == movie_title), None)
-                        if movie:
-                            self.app.movie_list_gui.mark_as_watched()
-                    else:
-                        movie = next((m for m in self.app.movie_manager.movies_watched 
-                                    if m.title == movie_title), None)
-                        if movie:
-                            self.app.movie_list_gui.unwatch_movie()
-                            
-                    # Clear drag state
-                    from_list.drag_start = None
-                    from_list.drag_source = None
+        # Remove single-click bindings for drag-drop
+        # Add double-click bindings for moving items
+        def on_double_click(event, from_list, to_list):
+            sel = from_list.curselection()
+            if sel:
+                movie = from_list.items[sel[0]]
+                if from_list == self.to_watch_listbox:
+                    self.app.movie_manager.mark_as_watched(movie)
+                else:
+                    self.app.movie_manager.unwatch_movie(movie)
+                
+                # Update the listboxes
+                self.app.gui_helper.update_listbox(self.to_watch_listbox, self.app.movie_manager.movies_to_watch)
+                self.app.gui_helper.update_listbox(self.watched_listbox, self.app.movie_manager.movies_watched)
 
-        # Enable drag between lists
-        self.to_watch_listbox.bind('<Button-1>', lambda e: start_drag(e, self.to_watch_listbox))
-        self.watched_listbox.bind('<Button-1>', lambda e: start_drag(e, self.watched_listbox))
-        self.to_watch_listbox.bind('<ButtonRelease-1>', lambda e: do_drag(e, self.to_watch_listbox, self.watched_listbox))
-        self.watched_listbox.bind('<ButtonRelease-1>', lambda e: do_drag(e, self.watched_listbox, self.to_watch_listbox))
+        # Bind double-click events
+        self.to_watch_listbox.bind('<Double-Button-1>', 
+            lambda e: on_double_click(e, self.to_watch_listbox, self.watched_listbox))
+        self.watched_listbox.bind('<Double-Button-1>', 
+            lambda e: on_double_click(e, self.watched_listbox, self.to_watch_listbox))
+
+        # Ensure selection event is handled
+        self.to_watch_listbox.bind('<<ListboxSelect>>', self.on_listbox_select)
+        self.watched_listbox.bind('<<ListboxSelect>>', self.on_listbox_select)
+
+    def on_listbox_select(self, event):
+        """Handle listbox selection event"""
+        selected_movie = self.app.get_selected_movie()
+        if selected_movie:
+            # Perform any additional actions needed when a movie is selected
+            pass
 
     def _setup_context_menus(self):
         self.context_menu = tk.Menu(self, tearoff=0)

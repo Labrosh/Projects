@@ -20,7 +20,7 @@ class GUIHelper:
         logging.debug(f"Updating listbox with {len(items)} items")
         listbox.delete(0, tk.END)
         for item in items:
-            listbox.insert(tk.END, item.title)
+            listbox.insert(tk.END, item)  # Pass the movie object instead of item.title
         listbox.update()
 
     def show_movie_poster(self, movie):

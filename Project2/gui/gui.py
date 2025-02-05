@@ -73,32 +73,29 @@ class MovieTrackerApp:
         self.root.geometry(f"{self.ui_settings['window_width']}x{self.ui_settings['window_height']}")
 
     def show_selected_movie_details(self):
-        """Show details for the currently selected movie"""
-        selected_to_watch = self.to_watch_listbox.curselection()
-        selected_watched = self.watched_listbox.curselection()
-
-        if selected_to_watch:
-            movie = self.movie_manager.movies_to_watch[selected_to_watch[0]]
-            self.gui_helper.show_movie_details(movie)
-        elif selected_watched:
-            movie = self.movie_manager.movies_watched[selected_watched[0]]
-            self.gui_helper.show_movie_details(movie)
-        else:
-            messagebox.showwarning("Warning", "Please select a movie to view details!")
+        if self.root.winfo_exists():  # Check if the root window exists
+            selected_movie = self.get_selected_movie()
+            if selected_movie:
+                self.gui_helper.show_movie_details(selected_movie)
+            else:
+                messagebox.showwarning("Warning", "Please select a movie to view details!")
 
     def show_selected_movie_poster(self):
-        """Show poster for the currently selected movie"""
-        selected_to_watch = self.to_watch_listbox.curselection()
-        selected_watched = self.watched_listbox.curselection()
+        if self.root.winfo_exists():  # Check if the root window exists
+            selected_movie = self.get_selected_movie()
+            if selected_movie:
+                self.gui_helper.show_movie_poster(selected_movie)
+            else:
+                messagebox.showwarning("Warning", "Please select a movie to view poster!")
 
-        if selected_to_watch:
-            movie = self.movie_manager.movies_to_watch[selected_to_watch[0]]
-            self.gui_helper.show_movie_poster(movie)
-        elif selected_watched:
-            movie = self.movie_manager.movies_watched[selected_watched[0]]
-            self.gui_helper.show_movie_poster(movie)
-        else:
-            messagebox.showwarning("Warning", "Please select a movie to view poster!")
+    def get_selected_movie(self):
+        selected_index = self.to_watch_listbox.curselection()
+        if selected_index:
+            return self.to_watch_listbox.items[selected_index[0]]
+        selected_index = self.watched_listbox.curselection()
+        if selected_index:
+            return self.watched_listbox.items[selected_index[0]]
+        return None
 
     def open_settings(self):
         """Open the settings window"""
