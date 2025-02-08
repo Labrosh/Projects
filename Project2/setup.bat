@@ -26,9 +26,11 @@ if not defined TMDB_API_KEY (
     
     if /i not "%API_INPUT%"=="skip" (
         set TMDB_API_KEY=%API_INPUT%
-        echo {"tmdb_api_key": "%TMDB_API_KEY%"} > gui/settings.json
+        if not exist %USERPROFILE%\.movielog mkdir %USERPROFILE%\.movielog
+        echo {"tmdb_api_key": "%TMDB_API_KEY%"} > %USERPROFILE%\.movielog\settings.json
     ) else (
-        echo {"offline_mode": true} > gui/settings.json
+        if not exist %USERPROFILE%\.movielog mkdir %USERPROFILE%\.movielog
+        echo {"offline_mode": true} > %USERPROFILE%\.movielog\settings.json
         echo Setup complete in offline mode!
     )
 )

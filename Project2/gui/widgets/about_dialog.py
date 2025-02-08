@@ -4,7 +4,6 @@ import requests
 from PIL import Image, ImageTk
 import io
 import os
-import cairosvg
 import logging
 from gui.color_scheme import ColorSchemeManager
 
@@ -59,47 +58,22 @@ class AboutDialog(tk.Toplevel):
         self.center_window()
 
     def load_tmdb_logo(self):
-        """Load TMDB logo from cache or download if needed"""
+        """Load TMDB logo from cache"""
         try:
             # Create cache directory if it doesn't exist
             os.makedirs(os.path.dirname(self.LOGO_CACHE_PATH), exist_ok=True)
             
-            # Try to load from cache first
+            # Load from cache
             if os.path.exists(self.LOGO_CACHE_PATH):
                 logging.debug("Loading TMDB logo from cache")
-                image = Image.open(self.LOGO_CACHE_PATH)
-                self.logo_image = ImageTk.PhotoImage(image)
-                return
-
-            # If not in cache, try to download
-            logging.debug("Downloading TMDB logo")
-            url = "https://www.themoviedb.org/assets/2/v4/logos/v2/blue_long_2-9665a76b1ae401a510ec1e0ca40ddcb3b0cfe45f1d51b77a308fea0845885648.svg"
-            response = requests.get(url)
-            if response.status_code == 200:
-                # Convert SVG to PNG and save to cache
-                png_data = cairosvg.svg2png(bytestring=response.content,
-                                          output_width=300)
-                
-                # Save to cache
-                with open(self.LOGO_CACHE_PATH, 'wb') as f:
-                    f.write(png_data)
-                
-                # Create image for display
-                image = Image.open(io.BytesIO(png_data))
-                self.logo_image = ImageTk.PhotoImage(image)
-                logging.debug("TMDB logo cached successfully")
+                self.logo_image = ImageTk.PhotoImage(Image.open(self.LOGO_CACHE_PATH))
             else:
-                logging.error("Failed to download TMDB logo")
+                logging.error("TMDB logo not found in cache")
+                self.logo_image = None
                 
-        except requests.exceptions.ConnectionError:
-            logging.warning("No internet connection - trying to load cached logo")
-            if os.path.exists(self.LOGO_CACHE_PATH):
-                image = Image.open(self.LOGO_CACHE_PATH)
-                self.logo_image = ImageTk.PhotoImage(image)
-            else:
-                logging.error("No cached logo available")
         except Exception as e:
             logging.error(f"Failed to handle TMDB logo: {e}")
+            self.logo_image = None
 
     def center_window(self):
         self.update_idletasks()

@@ -25,9 +25,11 @@ if [ -z "$TMDB_API_KEY" ]; then
     
     if [ "$API_INPUT" != "skip" ]; then
         TMDB_API_KEY=$API_INPUT
-        echo "{\"tmdb_api_key\": \"$TMDB_API_KEY\"}" > gui/settings.json
+        mkdir -p ~/.movielog
+        echo "{\"tmdb_api_key\": \"$TMDB_API_KEY\"}" > ~/.movielog/settings.json
     else
-        echo "{\"offline_mode\": true}" > gui/settings.json
+        mkdir -p ~/.movielog
+        echo "{\"offline_mode\": true}" > ~/.movielog/settings.json
         echo "Setup complete in offline mode!"
     fi
 fi
