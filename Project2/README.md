@@ -1,58 +1,111 @@
-# Project2
+# Movielog
 
-## Overview
-This project is a movie logging application that allows users to search for movies using the TMDb API, add them to a watchlist, mark them as watched, and view their lists. The project features a modern graphical user interface (GUI) with customizable settings.
+An elegant desktop application for organizing movie nights with friends. Track your watchlist, rate movies, and discover new films through TMDb integration.
 
-## Project Structure
-```
-Project2/
-├── api/
-│   └── tmdb_api.py          # TMDb API integration
-├── data/
-│   ├── movies.json          # User's movie data
-│   ├── settings.json        # Application settings
-│   └── posters/             # Downloaded movie posters
-├── gui/
-│   ├── widgets/             # Custom GUI widgets
-│   ├── color_scheme.py      # UI theming
-│   ├── gui.py               # Main GUI implementation
-│   ├── gui_helper.py        # GUI utility functions
-│   ├── gui_movie_list.py    # Movie list view
-│   ├── gui_search.py        # Search interface
-│   └── gui_settings.py      # Settings interface
-├── models/
-│   ├── manager.py           # Data management
-│   └── movie.py             # Movie data model
-└── requirements.txt         # Project dependencies
+## 🎬 Quick Start
+
+```bash
+# Install from PyPI
+pip install movielog
+
+# Or install from source
+git clone https://github.com/yourusername/movielog.git
+cd movielog
+pip install -e .
+
+# Run the application
+movielog
 ```
 
-## Dependencies
-Install required packages using:
+## ✨ Features
+
+### Movie Management
+- Search TMDb's extensive movie database
+- Maintain watchlist and watched movies
+- Rate and review watched films
+- Automatic poster downloads
+
+### User Experience
+- Modern, customizable interface
+- Dark and light themes
+- Offline mode support
+- Secure API key storage
+
+### Data Handling
+- Local data storage in `~/.movielog/`
+- Automatic backup system
+- Poster caching
+- Safe settings management
+
+## 🔧 Development Setup
+
+### Prerequisites
+- Python 3.12+
+- git
+- pip
+
+### Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-## Configuration
-1. Set up your TMDb API key:
-   - Create an account on TMDb and get your API key
-   - Set the `TMDB_API_KEY` environment variable
-   - Or configure it through the settings interface
-
-## Usage
-Run the application:
+### Running Tests
 ```bash
-python -m gui.gui
+python -m unittest discover tests
 ```
 
-## Features
-- Movie search with TMDb integration
-- Watchlist management
-- Movie progress tracking
-- Customizable interface
-- Poster downloads and caching
-- Settings persistence
+## 🔑 API Configuration
 
-## Data Storage
-- Movie data is stored in `data/movies.json`
-- Application settings in `data/settings.json`
-- Movie posters are cached in `data/posters/`
+### Getting a TMDb API Key
+1. Create account: [TMDb Signup](https://www.themoviedb.org/signup)
+2. Get API key: [API Settings](https://www.themoviedb.org/settings/api)
+3. Set key via:
+   - Application settings menu
+   - Environment variable: `TMDB_API_KEY`
+   - First-run setup
+
+### Security Notes
+- API key stored in `~/.movielog/settings.json`
+- Directory permissions: 700 (user-only)
+- Settings file permissions: 600 (user-only)
+
+## 🌐 Offline Mode
+
+Enable offline mode by:
+- Skipping API key entry
+- Using `--offline` flag
+- Through settings menu
+
+Limitations:
+- No movie search
+- No poster downloads
+- No new movie details
+
+## 📁 Project Structure
+
+```
+movielog/
+├── api/          # TMDb API integration
+├── gui/          # User interface components
+│   └── widgets/  # Reusable UI elements
+├── models/       # Data models
+└── utils/        # Helper utilities
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+4. Push branch (`git push origin feature/AmazingFeature`)
+5. Open Pull Request
+
+## 📝 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
+
+## 🙏 Acknowledgments
+
+- [TMDb](https://www.themoviedb.org/) for their excellent API
+- Python tkinter community
+- All contributors and users

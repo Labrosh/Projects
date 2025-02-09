@@ -1,0 +1,6 @@
+# This directory contains application data:
+# - /cache/: Temporary cached files
+# - /posters/: Downloaded movie posters
+# - movies.json: User's movie database
+
+# This file exists only to ensure Git creates these directories on clone

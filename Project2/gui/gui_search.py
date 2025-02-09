@@ -15,6 +15,20 @@ class MovieSearchGUI:
         self.search_results = []
         self.temp_images = {}  # Store thumbnail images while window is open
 
+        # Create search controls in main window
+        self.search_frame = tk.Frame(self.root)
+        self.search_frame.pack(fill='x', pady=5)
+
+        self.search_entry = tk.Entry(self.search_frame)
+        self.search_entry.pack(side='left', fill='x', expand=True, padx=5)
+        
+        self.search_button = tk.Button(self.search_frame, text="Search", 
+                                     command=lambda: self.search_movie())
+        self.search_button.pack(side='right', padx=5)
+
+        # Bind enter key to search
+        self.search_entry.bind('<Return>', lambda e: self.search_movie())
+
     def search_movie(self, title=None, update_existing=False, existing_movie=None):
         """Search for a movie using provided title"""
         search_window = tk.Toplevel(self.root)
@@ -236,3 +250,13 @@ class MovieSearchGUI:
 
         # Clean up on window close
         search_window.protocol("WM_DELETE_WINDOW", lambda: [search_window.destroy(), self.temp_images.clear()])
+
+    def disable_search(self):
+        """Disable search functionality for offline mode"""
+        self.search_button.config(state='disabled')
+        self.search_entry.config(state='disabled')
+        
+    def enable_search(self):
+        """Enable search functionality"""
+        self.search_button.config(state='normal')
+        self.search_entry.config(state='normal')

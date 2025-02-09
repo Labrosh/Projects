@@ -9,6 +9,7 @@ from gui.widgets.control_panel import ControlPanel
 from gui.widgets.entry_panel import EntryPanel
 from gui.widgets.tooltip import TooltipManager
 from gui.widgets.window_manager import WindowManager
+from gui.widgets.settings_dialog import SettingsDialog
 
 class GUIHelper:
     def __init__(self, app):
@@ -97,4 +98,8 @@ class GUIHelper:
         self.app.root.after(timeout, lambda: self.status_var.set(""))
 
     def open_settings(self):
-        self.window_manager.show_settings_window()
+        """Open the settings dialog"""
+        dialog = SettingsDialog(self.app.root, self.app.settings_manager)
+        self.app.root.wait_window(dialog)
+        # Refresh UI in case theme changed
+        self.app.update_ui()
